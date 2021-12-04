@@ -1,0 +1,15 @@
+{
+    "name": "wojciech/quiz-game",
+    "autoload": {
+        "psr-4": {
+            "Wojciech\\QuizGame\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Wojciech Nawalaniec",
+            "email": "wnnawalaniec@gmail.com"
+        }
+    ],
+    "require": {}
+}
