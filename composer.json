@@ -11,5 +11,14 @@
             "email": "wnnawalaniec@gmail.com"
         }
     ],
-    "require": {}
+    "require-dev": {
+        "heroku/heroku-buildpack-php": "^201.0"
+    },
+    "require": {
+        "php": "^8.1",
+        "slim/slim": "4.*",
+        "php-di/php-di": "^6.3",
+        "slim/psr7": "^1.5",
+        "monolog/monolog": "^2.3"
+    }
 }
