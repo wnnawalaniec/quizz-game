@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Wojciech\QuizGame\Model;
+namespace Wojciech\QuizGame\Domain;
 
 class Answer
 {

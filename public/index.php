@@ -5,6 +5,7 @@ use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 use Slim\ResponseEmitter;
+use Wojciech\QuizGame\Application\Settings;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -23,10 +24,6 @@ $settings($containerBuilder);
 $dependencies = require __DIR__ . '/../app/dependencies.php';
 $dependencies($containerBuilder);
 
-// Set up repositories
-$repositories = require __DIR__ . '/../app/repositories.php';
-$repositories($containerBuilder);
-
 // Build PHP-DI Container instance
 $container = $containerBuilder->build();
 
@@ -44,7 +41,7 @@ $routes = require __DIR__ . '/../app/routes.php';
 $routes($app);
 
 ///** @var SettingsInterface $settings */
-//$settings = $container->get(SettingsInterface::class);
+$settings = $container->get(Settings::class);
 
 $displayErrorDetails = $settings->get('displayErrorDetails');
 $logError = $settings->get('logError');
