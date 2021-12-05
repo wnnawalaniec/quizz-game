@@ -1,0 +1,48 @@
+version: '3.3'
+services:
+  nginx:
+    container_name: quiz-game_nginx
+    image: quiz-game/web
+    build: docker/nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./:/var/www
+    links:
+      - php
+    depends_on:
+      - php
+
+  php:
+    container_name: quiz-game_fpm
+    image: quiz-game/php
+    build:
+      context: .
+      dockerfile: docker/php/dockerfile
+    volumes:
+      - ./:/var/www
+    expose:
+      - 9000
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    env_file: .env
+
+  mysql:
+    container_name: quiz-game_database
+    image: mariadb
+    hostname: database
+    ports:
+      - "3306:3306"
+    restart: always
+    env_file: .env
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql

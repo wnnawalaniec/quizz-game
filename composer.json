@@ -5,6 +5,11 @@
             "Wojciech\\QuizGame\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Wojciech\\QuizGame\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Wojciech Nawalaniec",
@@ -12,13 +17,18 @@
         }
     ],
     "require-dev": {
-        "heroku/heroku-buildpack-php": "^201.0"
+        "heroku/heroku-buildpack-php": "^201.0",
+        "phpunit/phpunit": "^9.5"
     },
     "require": {
         "php": "^8.1",
         "slim/slim": "4.*",
         "php-di/php-di": "^6.3",
         "slim/psr7": "^1.5",
-        "monolog/monolog": "^2.3"
+        "monolog/monolog": "^2.3",
+        "doctrine/dbal": "^3.2",
+        "doctrine/orm": "^2.10",
+        "symfony/cache": "^6.0",
+        "bentools/doctrine-native-enums": "^0.1.0"
     }
 }

@@ -1,0 +1,26 @@
+FROM php:8.1-fpm
+
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y \
+        libzip-dev \
+        zip
+RUN docker-php-ext-install pdo pdo_mysql mysqli zip
+
+WORKDIR /var/www
+
+COPY ./docker/php/composer.sh /tmp/composer.sh
+RUN chmod +x /tmp/composer.sh
+RUN /tmp/composer.sh
+RUN chmod +x composer.phar
+
+COPY . /var/www
+
+RUN php composer.phar install \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --no-dev \
+    --prefer-dist \
+    && rm -rf composer.json \
+    && rm -rf composer.lock

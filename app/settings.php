@@ -12,14 +12,23 @@ return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
         Settings::class => function () {
             return new BasicSettings([
-                'displayErrorDetails' => true, // Should be set to false in production
-                'logError'            => true,
-                'logErrorDetails'     => true,
+                'dev' => $_ENV['DEV'],
+                'displayErrorDetails' => $_ENV['DISPLAY_ERROR_DETAILS'], // Should be set to false in production
+                'logError'            => $_ENV['LOG_ERROR'],
+                'logErrorDetails'     => $_ENV['LOG_ERROR_DETAILS'],
                 'logger' => [
                     'name' => 'slim-app',
                     'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
                     'level' => Logger::DEBUG,
                 ],
+                'database' => [
+                    'driver'   => 'pdo_mysql',
+                    'user'     => $_ENV['MYSQL_USER'],
+                    'password' => $_ENV['MYSQL_PASSWORD'],
+                    'dbname'   => $_ENV['MYSQL_DATABASE'],
+                    'host'     => $_ENV['MYSQL_HOST']
+                ],
+                'doctrine_entities' =>[ __DIR__ . '/../src']
             ]);
         }
     ]);

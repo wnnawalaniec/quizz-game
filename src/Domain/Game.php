@@ -3,8 +3,13 @@ declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain;
 
+use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\Pure;
 
+/**
+ * @ORM\Entity()
+ * @ORM\Table(name="game")
+ */
 class Game
 {
     private function __construct(
@@ -26,11 +31,26 @@ class Game
         return new self(State::NEW_GAME, [], $questions);
     }
 
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue
+     */
+    private int $id;
+
+    /** @ORM\Column(type= State::class) */
     private State $state;
-    /** @var Player[] */
+    /**
+     * @ORM\OneToMany(targetEntity="Player", mappedBy="game")
+     * @var Player[]
+     */
     private array $players;
-    /** @var Question[] */
+    /**
+     * @ORM\OneToMany(targetEntity="Question", mappedBy="game")
+     * @var Question[]
+     */
     private array $questions;
+    /** @ORM\Column(type="integer") */
     private int $currentQuestion;
     /** @var Score[] */
     private array $score;
