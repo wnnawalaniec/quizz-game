@@ -5,13 +5,13 @@ namespace Wojciech\QuizGame\Infrastructure\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Wojciech\QuizGame\Application\AuthenticationService;
 use Wojciech\QuizGame\Application\Exception\InvalidCredentials;
+use Wojciech\QuizGame\Application\Service\Authentication;
 use Wojciech\QuizGame\Application\Settings;
 
 class LoginController
 {
-    public function __construct(Settings $settings, AuthenticationService $authenticationService)
+    public function __construct(Settings $settings, Authentication $authenticationService)
     {
         $this->settings = $settings;
         $this->authenticationService = $authenticationService;
@@ -53,5 +53,5 @@ class LoginController
             && isset($request->getServerParams()['PHP_AUTH_PW']);
     }
 
-    private AuthenticationService $authenticationService;
+    private Authentication $authenticationService;
 }

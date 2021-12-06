@@ -8,11 +8,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
-use Wojciech\QuizGame\Application\AuthenticationService;
+use Wojciech\QuizGame\Application\Service\Authentication;
 
 class AuthenticationGuardMiddleware implements MiddlewareInterface
 {
-    public function __construct(AuthenticationService $authenticationService)
+    public function __construct(Authentication $authenticationService)
     {
         $this->authenticationService = $authenticationService;
     }
@@ -26,5 +26,5 @@ class AuthenticationGuardMiddleware implements MiddlewareInterface
         return $handler->handle($request);
     }
 
-    private AuthenticationService $authenticationService;
+    private Authentication $authenticationService;
 }

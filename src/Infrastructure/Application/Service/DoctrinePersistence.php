@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Wojciech\QuizGame\Infrastructure\Application;
+namespace Wojciech\QuizGame\Infrastructure\Application\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Wojciech\QuizGame\Application\Transaction;
+use Wojciech\QuizGame\Application\Service\Persistence;
 
-class DoctrineTransaction implements Transaction
+class DoctrinePersistence implements Persistence
 {
     public function __construct(EntityManagerInterface $entityManager)
     {

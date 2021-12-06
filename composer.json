@@ -30,6 +30,7 @@
         "doctrine/orm": "^2.10",
         "symfony/cache": "^6.0",
         "bentools/doctrine-native-enums": "^0.1.0",
-        "doctrine/cache": "^2.1"
+        "doctrine/cache": "^2.1",
+        "ramsey/uuid-doctrine": "^1.8"
     }
 }

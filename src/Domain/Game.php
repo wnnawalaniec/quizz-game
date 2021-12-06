@@ -7,7 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\ArrayShape;
-use Wojciech\QuizGame\Domain\Game\Exception\CannotGameWhichIsNotNew;
+use Ramsey\Uuid\Doctrine\UuidGenerator;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\State;
 
@@ -36,8 +38,15 @@ class Game implements \JsonSerializable
         return new self(State::NEW_GAME, [], $questions);
     }
 
+    /**
+     * @throws CannotAddQuestionGameIsNotNew
+     */
     public function addQuestion(Question $question): void
     {
+        if (!$this->isNewGame()) {
+            throw CannotAddQuestionGameIsNotNew::create();
+        }
+
         $question->setGame($this);
         $this->questions->add($question);
     }
@@ -45,22 +54,6 @@ class Game implements \JsonSerializable
     public function questions(): Collection
     {
         return $this->questions;
-    }
-
-    #[ArrayShape([
-        'id' => "int",
-        'state' => "\Wojciech\QuizGame\Domain\State",
-        'questions' => "mixed",
-        'players' => "mixed"
-    ])]
-    public function jsonSerialize(): array
-    {
-        return [
-            'id' => $this->id,
-            'state' => $this->state,
-            'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
-            'players' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->players->toArray()),
-        ];
     }
 
     /**
@@ -90,12 +83,12 @@ class Game implements \JsonSerializable
     }
 
     /**
-     * @throws CannotGameWhichIsNotNew
+     * @throws CannotJoinGameWhichIsNotNew
      */
     public function join(Player $player): void
     {
-        if ($this->isNewGame()) {
-            throw CannotGameWhichIsNotNew::create();
+        if (!$this->isNewGame()) {
+            throw CannotJoinGameWhichIsNotNew::create();
         }
 
         $player->setGame($this);
@@ -109,7 +102,7 @@ class Game implements \JsonSerializable
 
     protected function isNewGame(): bool
     {
-        return $this->state !== State::NEW_GAME;
+        return $this->state === State::NEW_GAME;
     }
 
     protected function isStarted(): bool
@@ -117,11 +110,34 @@ class Game implements \JsonSerializable
         return $this->state === State::STARTED;
     }
 
+    #[ArrayShape([
+        'id' => "string",
+        'state' => "\Wojciech\QuizGame\Domain\State",
+        'questions' => "mixed",
+        'players' => "mixed"
+    ])]
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'state' => $this->state,
+            'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
+            'players' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->players->toArray()),
+        ];
+    }
+
+    public function id(): string
+    {
+        return $this->id;
+    }
+
     /**
      * @ORM\Id
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="uuid", unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
      */
-    private int $id = 1; // This is hack to simply keep only one instance of game
+    private string $id;
     /** @ORM\Column(type= State::class) */
     private State $state;
     /**

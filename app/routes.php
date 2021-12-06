@@ -10,6 +10,7 @@ use Wojciech\QuizGame\Infrastructure\Controller\LoginController;
 use Wojciech\QuizGame\Infrastructure\Middleware\AuthenticationGuardMiddleware;
 use Wojciech\QuizGame\Infrastructure\Middleware\JsonApplicationMiddleware;
 use Wojciech\QuizGame\Infrastructure\Middleware\NoCacheMiddleware;
+use Wojciech\QuizGame\Infrastructure\Middleware\SessionMiddleware;
 
 return function (App $app) {
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
@@ -35,4 +36,8 @@ return function (App $app) {
         })
         ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
         ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class));
+
+    $app->post('/api/game/join', [GameController::class, 'joinGame'])
+        ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
+        ->addMiddleware($app->getContainer()->get(SessionMiddleware::class));
 };

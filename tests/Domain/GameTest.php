@@ -6,7 +6,8 @@ namespace Tests\Wojciech\QuizGame\Domain;
 use Tests\Wojciech\QuizGame\BaseTest;
 use Wojciech\QuizGame\Domain\Answer;
 use Wojciech\QuizGame\Domain\Game;
-use Wojciech\QuizGame\Domain\Game\Exception\CannotGameWhichIsNotNew;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Player;
 use Wojciech\QuizGame\Domain\Question;
@@ -20,6 +21,16 @@ class GameTest extends BaseTest
         $game->addQuestion($expectedQuestion);
 
         $this->assertContains($expectedQuestion, $game->questions()->toArray());
+    }
+
+    public function testAddingQuestion_GameIsNotNew_ThrowsException(): void
+    {
+        $game = $this->createStartedGame();
+
+        $act = fn () => $game->addQuestion($this->createQuestion());
+
+        $expectedException = CannotAddQuestionGameIsNotNew::create();
+        $this->assertException($expectedException, $act);
     }
 
     public function testStart_GameIsNew_GameStarted(): void
@@ -77,7 +88,7 @@ class GameTest extends BaseTest
 
         $act = fn () => $game->join($this->createPlayer());
 
-        $expectedException = CannotGameWhichIsNotNew::create();
+        $expectedException = CannotJoinGameWhichIsNotNew::create();
         $this->assertException($expectedException, $act);
     }
 

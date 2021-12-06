@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Wojciech\QuizGame\Application;
+namespace Wojciech\QuizGame\Application\Service;
 
 use Wojciech\QuizGame\Application\Exception\InvalidCredentials;
 
-interface AuthenticationService
+interface Authentication
 {
     public function isAuthenticated(): bool;
 

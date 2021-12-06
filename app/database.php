@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use BenTools\Doctrine\NativeEnums\Type\NativeEnum;
 use DI\ContainerBuilder;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Setup;
@@ -24,6 +25,7 @@ return function (ContainerBuilder $containerBuilder) {
             );
 
             NativeEnum::registerEnumType(State::class);
+            Type::addType('uuid', 'Ramsey\Uuid\Doctrine\UuidType');
 
             return EntityManager::create($settings->get('database'), $config);
         }

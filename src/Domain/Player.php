@@ -5,6 +5,7 @@ namespace Wojciech\QuizGame\Domain;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
+use Ramsey\Uuid\Doctrine\UuidGenerator;
 
 /**
  * @Entity
@@ -22,12 +23,18 @@ class Player
         $this->game = $game;
     }
 
+    public function id(): string
+    {
+        return $this->id;
+    }
+
     /**
      * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
+     * @ORM\Column(type="uuid", unique=true)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class=UuidGenerator::class)
      */
-    private int $id;
+    private string $id;
 
     /** @ORM\Column(type="string") */
     private string $name;

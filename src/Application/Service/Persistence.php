@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Wojciech\QuizGame\Application;
+namespace Wojciech\QuizGame\Application\Service;
 
-interface Transaction
+interface Persistence
 {
     public function begin(): void;
     public function commit(): void;

@@ -3,10 +3,14 @@ declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain\Service;
 
+use Doctrine\Common\Collections\Collection;
 use Wojciech\QuizGame\Domain\Game;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
+use Wojciech\QuizGame\Domain\Player;
 use Wojciech\QuizGame\Domain\Question;
-use Wojciech\QuizGame\Domain\Service\Exception\CannotAddQuestionGameNotCreatedYet;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
+use Wojciech\QuizGame\Domain\Service\Exception\NoGameExists;
 
 class GameService
 {
@@ -16,9 +20,21 @@ class GameService
     }
 
     /**
+     * @throws NoGameExists
+     */
+    public function game(): Game
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+        return $game;
+    }
+
+    /**
      * @throws CannotStartNewGameWhenThereIsAlreadyOne
      */
-    public function startNewGame(): void
+    public function createNew(): void
     {
         if ($this->repository->get() !== null) {
             throw CannotStartNewGameWhenThereIsAlreadyOne::create();
@@ -27,14 +43,57 @@ class GameService
     }
 
     /**
-     * @throws CannotAddQuestionGameNotCreatedYet
+     * @throws CannotStartGame
+     * @throws GameIsFinished
+     * @throws NoGameExists
+     */
+    public function start(): void
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+
+        $game->start();
+    }
+
+    /**
+     * @throws NoGameExists
+     * @throws Game\Exception\CannotAddQuestionGameIsNotNew
      */
     public function addQuestion(Question $question): void
     {
-        if ($this->repository->get() === null) {
-            throw CannotAddQuestionGameNotCreatedYet::create();
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
         }
-        $this->repository->get()->addQuestion($question);
+        $game->addQuestion($question);
+    }
+
+    /**
+     * @throws Game\Exception\CannotJoinGameWhichIsNotNew
+     * @throws NoGameExists
+     */
+    public function join(Player $player): void
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+        $game->join($player);
+    }
+
+    /**
+     * @return Collection<Question>
+     * @throws NoGameExists
+     */
+    public function questions(): Collection
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+        return $game->questions();
     }
 
     private Game\Repository $repository;
