@@ -11,6 +11,7 @@ use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
 use Wojciech\QuizGame\Domain\Game\State;
 
 /**
@@ -19,17 +20,16 @@ use Wojciech\QuizGame\Domain\Game\State;
  */
 class Game implements \JsonSerializable
 {
-    public function __construct(
+    private function __construct(
         State $state,
         array $players = [],
         array $questions = [],
-        array $score = [],
-        int $currentQuestion = -1
+        array $score = []
     ) {
         $this->state = $state;
         $this->players = new ArrayCollection($players);
         $this->questions = new ArrayCollection($questions);
-        $this->currentQuestion = $currentQuestion;
+        $this->currentQuestion = -1;
         $this->score = new ArrayCollection($score);
     }
 
@@ -75,6 +75,7 @@ class Game implements \JsonSerializable
         }
 
         $this->state = $this->state->nextStage();
+        $this->currentQuestion = 0;
     }
 
     public function state(): State
@@ -110,6 +111,22 @@ class Game implements \JsonSerializable
         return $this->state === State::STARTED;
     }
 
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @throws GameNotStarted
+     */
+    public function currentQuestion(): Question
+    {
+        if (!$this->isStarted()) {
+            throw GameNotStarted::create();
+        }
+        return $this->questions->toArray()[$this->currentQuestion];
+    }
+
     #[ArrayShape([
         'id' => "string",
         'state' => "\Wojciech\QuizGame\Domain\State",
@@ -124,11 +141,6 @@ class Game implements \JsonSerializable
             'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
             'players' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->players->toArray()),
         ];
-    }
-
-    public function id(): string
-    {
-        return $this->id;
     }
 
     /**

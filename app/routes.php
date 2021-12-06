@@ -19,15 +19,15 @@ return function (App $app) {
     });
 
     $app
-        ->get('/login', [LoginController::class, 'login'])
+        ->get('/admin/login', [LoginController::class, 'login'])
         ->addMiddleware($app->getContainer()->get(NoCacheMiddleware::class));
 
     $app
-        ->get('/logout', [LoginController::class, 'logout'])
+        ->get('/admin/logout', [LoginController::class, 'logout'])
         ->addMiddleware($app->getContainer()->get(NoCacheMiddleware::class));
 
     $app
-        ->group('/api', function (RouteCollectorProxy $group) {
+        ->group('/admin/api', function (RouteCollectorProxy $group) {
             $group->get('/game', [GameController::class, 'game']);
             $group->post('/game/create', [GameController::class, 'createNewGame']);
             $group->post('/game/start', [GameController::class, 'startGame']);
@@ -37,7 +37,14 @@ return function (App $app) {
         ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
         ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class));
 
-    $app->post('/api/game/join', [GameController::class, 'joinGame'])
+    $app
+        ->group('/api', function (RouteCollectorProxy $group) {
+            $group->post('/api/game/join', [GameController::class, 'joinGame']);
+        })
         ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
         ->addMiddleware($app->getContainer()->get(SessionMiddleware::class));
+
+    $app
+        ->get('/status', [GameController::class, 'status'])
+        ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class));
 };

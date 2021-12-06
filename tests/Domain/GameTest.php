@@ -45,7 +45,7 @@ class GameTest extends BaseTest
 
     public function testStart_GameIsStarted_GameStarted(): void
     {
-        $game = new Game(Game\State::STARTED);
+        $game = $this->createStartedGame();
 
         $game->start();
 
@@ -59,6 +59,30 @@ class GameTest extends BaseTest
         $act = fn () => $game->start();
 
         $expectedException = CannotStartGame::createForNoQuestions();
+        $this->assertException($expectedException, $act);
+    }
+
+    public function testCurrentQuestion_GameStarted_ReturnFirstAddedQuestion(): void
+    {
+        $expectedQuestion = $this->createQuestion();
+        $game = Game::createNewGame();
+        $game->join($this->createPlayer());
+        $game->addQuestion($expectedQuestion);
+        $game->addQuestion($this->createQuestion());
+        $game->start();
+
+        $currentQuestion = $game->currentQuestion();
+
+        $this->assertSame($expectedQuestion, $currentQuestion);
+    }
+
+    public function testCurrentQuestion_GameNotStarted_ThrowsException(): void
+    {
+        $game = Game::createNewGame();
+
+        $act = fn () => $game->currentQuestion();
+
+        $expectedException = Game\Exception\GameNotStarted::create();
         $this->assertException($expectedException, $act);
     }
 

@@ -79,6 +79,14 @@ class Question implements \JsonSerializable
         $this->game = $game;
     }
 
+    /**
+     * @return Collection<Answer>
+     */
+    public function answers(): Collection
+    {
+        return $this->answers;
+    }
+
     #[ArrayShape([
         'id' => "int",
         'text' => "string",

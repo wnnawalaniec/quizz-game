@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\Collection;
 use Wojciech\QuizGame\Domain\Game;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
+use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
 use Wojciech\QuizGame\Domain\Player;
 use Wojciech\QuizGame\Domain\Question;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
@@ -94,6 +95,19 @@ class GameService
             throw NoGameExists::create();
         }
         return $game->questions();
+    }
+
+    /**
+     * @throws GameNotStarted
+     * @throws NoGameExists
+     */
+    public function currentQuestion(): Question
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+        return $game->currentQuestion();
     }
 
     private Game\Repository $repository;

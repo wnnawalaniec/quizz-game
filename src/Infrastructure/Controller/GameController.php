@@ -14,6 +14,7 @@ use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
+use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
 use Wojciech\QuizGame\Domain\Player;
 use Wojciech\QuizGame\Domain\Question;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
@@ -162,6 +163,26 @@ class GameController
             $response->getBody()->write(json_encode(['error' => 'NO_GAME_EXISTS']));
             return $response;
         }
+    }
+
+    public function status(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        try {
+            $game = $this->gameService->game();
+            $status = [
+                'status' => $game->state(),
+                'question' => $game->currentQuestion()->jsonSerialize()
+            ];
+        } catch (NoGameExists|GameNotStarted $e) {
+            $status = [
+                'status' => 'GAME_NOT_STARTED',
+                'question' => null,
+                'answers' => []
+            ];
+        }
+
+        $response->getBody()->write(json_encode($status));
+        return $response;
     }
 
     protected function playerFromJson(RequestInterface $request): Player
