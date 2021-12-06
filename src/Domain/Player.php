@@ -12,10 +12,14 @@ use Doctrine\ORM\Mapping\Entity;
  */
 class Player
 {
-    public function __construct(string $id, string $name)
+    public function __construct(string $name)
     {
-        $this->id = $id;
         $this->name = $name;
+    }
+
+    public function setGame(Game $game): void
+    {
+        $this->game = $game;
     }
 
     /**
@@ -23,10 +27,13 @@ class Player
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue
      */
-    private string $id;
+    private int $id;
 
     /** @ORM\Column(type="string") */
     private string $name;
-    /** @ORM\ManyToOne(targetEntity="Game", inversedBy="players") */
-    private string $game;
+    /**
+     * @ORM\ManyToOne(targetEntity="Game", inversedBy="players")
+     * @ORM\JoinColumn(name="game_id", referencedColumnName="id")
+     */
+    private Game $game;
 }

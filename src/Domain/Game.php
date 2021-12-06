@@ -7,6 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\ArrayShape;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotGameWhichIsNotNew;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\State;
 
 /**
  * @ORM\Entity()
@@ -14,7 +17,7 @@ use JetBrains\PhpStorm\ArrayShape;
  */
 class Game implements \JsonSerializable
 {
-    private function __construct(
+    public function __construct(
         State $state,
         array $players = [],
         array $questions = [],
@@ -28,7 +31,7 @@ class Game implements \JsonSerializable
         $this->score = new ArrayCollection($score);
     }
 
-    public static function startNewGame(Question...$questions): self
+    public static function createNewGame(Question...$questions): self
     {
         return new self(State::NEW_GAME, [], $questions);
     }
@@ -58,6 +61,60 @@ class Game implements \JsonSerializable
             'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
             'players' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->players->toArray()),
         ];
+    }
+
+    /**
+     * @throws CannotStartGame
+     * @throws Game\Exception\GameIsFinished
+     */
+    public function start(): void
+    {
+        if ($this->isStarted()) {
+            return;
+        }
+
+        if ($this->questions->isEmpty()) {
+            throw CannotStartGame::createForNoQuestions();
+        }
+
+        if ($this->players->isEmpty()) {
+            throw CannotStartGame::createForNoPlayers();
+        }
+
+        $this->state = $this->state->nextStage();
+    }
+
+    public function state(): State
+    {
+        return $this->state;
+    }
+
+    /**
+     * @throws CannotGameWhichIsNotNew
+     */
+    public function join(Player $player): void
+    {
+        if ($this->isNewGame()) {
+            throw CannotGameWhichIsNotNew::create();
+        }
+
+        $player->setGame($this);
+        $this->players->add($player);
+    }
+
+    public function players(): Collection
+    {
+        return $this->players;
+    }
+
+    protected function isNewGame(): bool
+    {
+        return $this->state !== State::NEW_GAME;
+    }
+
+    protected function isStarted(): bool
+    {
+        return $this->state === State::STARTED;
     }
 
     /**

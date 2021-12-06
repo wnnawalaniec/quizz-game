@@ -27,8 +27,9 @@ return function (App $app) {
 
     $app
         ->group('/api', function (RouteCollectorProxy $group) {
-            $group->post('/game/create', [GameController::class, 'createNewGame']);
             $group->get('/game', [GameController::class, 'game']);
+            $group->post('/game/create', [GameController::class, 'createNewGame']);
+            $group->post('/game/start', [GameController::class, 'startGame']);
             $group->post('/questions', [GameController::class, 'addQuestion']);
             $group->get('/questions', [GameController::class, 'listQuestions']);
         })

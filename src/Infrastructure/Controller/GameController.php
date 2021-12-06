@@ -8,9 +8,11 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Wojciech\QuizGame\Application\Transaction;
 use Wojciech\QuizGame\Domain\Answer;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
 use Wojciech\QuizGame\Domain\Game\Repository;
 use Wojciech\QuizGame\Domain\Question;
-use Wojciech\QuizGame\Domain\Service\Exception\CannotAddQuestionGameNotStartedYet;
+use Wojciech\QuizGame\Domain\Service\Exception\CannotAddQuestionGameNotCreatedYet;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
 use Wojciech\QuizGame\Domain\Service\GameService;
 use function json_decode;
@@ -49,7 +51,7 @@ class GameController
             $possibleAnswers[] = new Answer($answer['text'], $answer['is_correct']);
         }
         try {
-            $this->gameService->addQuestion(new Question($data['text'], $possibleAnswers));
+            $this->gameService->addQuestion(new Question($data['text'], ...$possibleAnswers));
         } catch (Question\Exception\EmptyTextGiven $e) {
             $response = $response->withStatus(400);
             $response->getBody()->write(json_encode(['error' => 'EMPTY_QUESTION']));
@@ -66,9 +68,13 @@ class GameController
             $response = $response->withStatus(400);
             $response->getBody()->write(json_encode(['error' => 'MORE_THAN_ONE_CORRECT_ANSWER']));
             return $response;
-        } catch (CannotAddQuestionGameNotStartedYet $e) {
+        } catch (CannotAddQuestionGameNotCreatedYet $e) {
             $response = $response->withStatus(409);
             $response->getBody()->write(json_encode(['error' => 'GAME_NOT_STARTED_YET']));
+            return $response;
+        } catch (Question\Exception\OnlyOneAnswerGiven $e) {
+            $response = $response->withStatus(400);
+            $response->getBody()->write(json_encode(['error' => 'ONLY_ONE_ANSWER']));
             return $response;
         }
         $this->transaction->flush();
@@ -92,13 +98,39 @@ class GameController
         $game = $this->repository->get();
 
         if ($game === null) {
-            $response->withStatus(404);
+            $response->withStatus(409);
+            $response->getBody()->write(json_encode(['error' => 'GAME_NOT_CREATED_YET']));
             return $response;
         }
 
         $response->getBody()->write(json_encode($game));
         return $response;
     }
+
+    public function startGame(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $game = $this->repository->get();
+
+        if ($game === null) {
+            $response->withStatus(409);
+            return $response;
+        }
+
+        try {
+            $game->start();
+        } catch (CannotStartGame $e) {
+            $response->withStatus(409);
+            $response->getBody()->write(json_encode(['error' => 'CANNOT_START_GAME']));
+            return $response;
+        } catch (GameIsFinished $e) {
+            $response->withStatus(409);
+            $response->getBody()->write(json_encode(['error' => 'GAME_IS_FINISHED']));
+            return $response;
+        }
+
+        return $response->withStatus(200);
+    }
+
     private Repository $repository;
     private GameService $gameService;
     private Transaction $transaction;

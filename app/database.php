@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Setup;
 use Psr\Container\ContainerInterface;
 use Wojciech\QuizGame\Application\Settings;
-use Wojciech\QuizGame\Domain\State;
+use Wojciech\QuizGame\Domain\Game\State;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
