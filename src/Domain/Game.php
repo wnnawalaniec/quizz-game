@@ -6,7 +6,7 @@ namespace Wojciech\QuizGame\Domain;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JetBrains\PhpStorm\Pure;
+use JetBrains\PhpStorm\ArrayShape;
 
 /**
  * @ORM\Entity()
@@ -15,26 +15,20 @@ use JetBrains\PhpStorm\Pure;
 class Game implements \JsonSerializable
 {
     private function __construct(
-        State $state = State::NEW_GAME,
+        State $state,
         array $players = [],
         array $questions = [],
-        int $currentQuestion = -1,
-        array $score = []
+        array $score = [],
+        int $currentQuestion = -1
     ) {
         $this->state = $state;
-        $this->players = new ArrayCollection();
-        foreach ($players as $player) {
-            $this->players->add($player);
-        }
-        $this->questions = new ArrayCollection();
-        foreach ($questions as $question) {
-            $this->questions->add($question);
-        }
+        $this->players = new ArrayCollection($players);
+        $this->questions = new ArrayCollection($questions);
         $this->currentQuestion = $currentQuestion;
-        $this->score = $score;
+        $this->score = new ArrayCollection($score);
     }
 
-    #[Pure] public static function startNewGame(array $questions): self
+    public static function startNewGame(Question...$questions): self
     {
         return new self(State::NEW_GAME, [], $questions);
     }
@@ -45,14 +39,17 @@ class Game implements \JsonSerializable
         $this->questions->add($question);
     }
 
-    /**
-     * @return array|Collection
-     */
-    public function questions(): array|Collection
+    public function questions(): Collection
     {
         return $this->questions;
     }
 
+    #[ArrayShape([
+        'id' => "int",
+        'state' => "\Wojciech\QuizGame\Domain\State",
+        'questions' => "mixed",
+        'players' => "mixed"
+    ])]
     public function jsonSerialize(): array
     {
         return [
@@ -67,22 +64,21 @@ class Game implements \JsonSerializable
      * @ORM\Id
      * @ORM\Column(type="integer")
      */
-    private int $id = 1;
+    private int $id = 1; // This is hack to simply keep only one instance of game
     /** @ORM\Column(type= State::class) */
     private State $state;
     /**
      * @ORM\OneToMany(targetEntity="Player", mappedBy="game", cascade={"persist", "remove"})
-     * @var Player[]
+     * @var Collection<Player>
      */
-    private array|Collection $players;
+    private Collection $players;
     /**
      * @ORM\OneToMany(targetEntity="Question", mappedBy="game", cascade={"persist", "remove"})
-     * @var Question[]
+     * @var Collection<Question>
      */
-    private array|Collection $questions;
+    private Collection $questions;
     /** @ORM\Column(type="integer") */
     private int $currentQuestion;
-
-    /** @var Score[] */
-    private array|Collection $score;
+    /** @var Collection<Score> */
+    private Collection $score;
 }

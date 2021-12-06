@@ -11,6 +11,7 @@ use JetBrains\PhpStorm\ArrayShape;
 use Wojciech\QuizGame\Domain\Question\Exception\EmptyTextGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoAnswerGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoCorrectAnswerGiven;
+use Wojciech\QuizGame\Domain\Question\Exception\OnlyOneAnswerGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\TooManyCorrectAnswersGiven;
 
 /**
@@ -20,34 +21,37 @@ use Wojciech\QuizGame\Domain\Question\Exception\TooManyCorrectAnswersGiven;
 class Question implements \JsonSerializable
 {
     /**
-     * @param Answer[] $answers
      * @throws NoCorrectAnswerGiven
      * @throws NoAnswerGiven
      * @throws TooManyCorrectAnswersGiven
      * @throws EmptyTextGiven
+     * @throws OnlyOneAnswerGiven
      */
-    public function __construct(string $text, array $answers)
+    public function __construct(string $text, Answer...$answers)
     {
         $this->text = $text;
-        $this->answers = new ArrayCollection();
         foreach ($answers as $answer) {
             $answer->setQuestion($this);
-            $this->answers->add($answer);
         }
+        $this->answers = new ArrayCollection($answers);
         $this->validateAnswers($answers);
         $this->validateText($text);
     }
 
     /**
-     * @param Answer[] $answers
      * @throws NoAnswerGiven
      * @throws NoCorrectAnswerGiven
      * @throws TooManyCorrectAnswersGiven
+     * @throws OnlyOneAnswerGiven
      */
     protected function validateAnswers(array $answers): void
     {
         if (empty($answers)) {
             throw NoAnswerGiven::create();
+        }
+
+        if (count($answers) === 1) {
+            throw OnlyOneAnswerGiven::create();
         }
 
         $correct = array_filter($answers, fn ($a) => $a->isCorrect());
@@ -75,7 +79,12 @@ class Question implements \JsonSerializable
         $this->game = $game;
     }
 
-    #[ArrayShape(['id' => "int", 'text' => "string", 'answers' => "mixed"])] public function jsonSerialize(): array
+    #[ArrayShape([
+        'id' => "int",
+        'text' => "string",
+        'answers' => "mixed"
+    ])]
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
@@ -94,9 +103,9 @@ class Question implements \JsonSerializable
     private string $text;
     /**
      * @ORM\OneToMany(targetEntity="Answer", mappedBy="question", cascade={"persist", "remove"})
-     * @var Answer[]
+     * @var Collection<Answer>
      */
-    private array|Collection $answers;
+    private Collection $answers;
 
     /**
      * @ORM\ManyToOne(targetEntity="Game", inversedBy="questions")

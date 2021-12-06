@@ -40,7 +40,12 @@ class Answer implements \JsonSerializable
         $this->question = $question;
     }
 
-    #[ArrayShape(['id' => "int", 'text' => "string", 'is_correct' => "bool"])] public function jsonSerialize(): array
+    #[ArrayShape([
+        'id' => "int",
+        'text' => "string",
+        'is_correct' => "bool"
+    ])]
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
