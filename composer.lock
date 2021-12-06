@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "97a503081e824725e6e842597ae47397",
+    "content-hash": "26bc4764e939d00155e0c869e48cbb19",
     "packages": [
         {
             "name": "bentools/doctrine-native-enums",

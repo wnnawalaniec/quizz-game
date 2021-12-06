@@ -8,4 +8,8 @@ use Wojciech\QuizGame\Domain\Game;
 interface Repository
 {
     public function store(Game $game): void;
+
+    public function get(): ?Game;
+
+    public function clear(): void;
 }

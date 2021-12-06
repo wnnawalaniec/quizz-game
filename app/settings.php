@@ -12,10 +12,10 @@ return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
         Settings::class => function () {
             return new BasicSettings([
-                'dev' => $_ENV['DEV'],
-                'displayErrorDetails' => $_ENV['DISPLAY_ERROR_DETAILS'], // Should be set to false in production
-                'logError'            => $_ENV['LOG_ERROR'],
-                'logErrorDetails'     => $_ENV['LOG_ERROR_DETAILS'],
+                'dev' => filter_var($_ENV['DEV'], FILTER_VALIDATE_BOOL),
+                'displayErrorDetails' => filter_var($_ENV['DISPLAY_ERROR_DETAILS'], FILTER_VALIDATE_BOOL), // Should be set to false in production
+                'logError'            => filter_var($_ENV['LOG_ERROR'], FILTER_VALIDATE_BOOL),
+                'logErrorDetails'     => filter_var($_ENV['LOG_ERROR_DETAILS'], FILTER_VALIDATE_BOOL),
                 'logger' => [
                     'name' => 'slim-app',
                     'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',

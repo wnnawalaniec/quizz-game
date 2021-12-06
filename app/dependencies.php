@@ -2,12 +2,18 @@
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
+use Doctrine\ORM\EntityManagerInterface;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Wojciech\QuizGame\Application\Settings;
+use Wojciech\QuizGame\Application\Transaction;
+use Wojciech\QuizGame\Domain\Game\Repository;
+use Wojciech\QuizGame\Domain\Service\GameService;
+use Wojciech\QuizGame\Infrastructure\Application\DoctrineTransaction;
+use Wojciech\QuizGame\Infrastructure\Domain\Game\DoctrineRepository;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -25,5 +31,14 @@ return function (ContainerBuilder $containerBuilder) {
 
             return $logger;
         },
+        Repository::class => function (ContainerInterface $c) {
+            return new DoctrineRepository($c->get(EntityManagerInterface::class));
+        },
+        GameService::class => function (ContainerInterface $c) {
+            return new GameService($c->get(Repository::class));
+        },
+        Transaction::class => function (ContainerInterface $c) {
+            return new DoctrineTransaction($c->get(EntityManagerInterface::class));
+        }
     ]);
 };

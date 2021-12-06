@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
 use Wojciech\QuizGame\Domain\Question\Exception\EmptyTextGiven;
@@ -88,7 +89,7 @@ class Question
      * @ORM\OneToMany(targetEntity="Answer", mappedBy="question")
      * @var Answer[]
      */
-    private array $answers;
+    private array|Collection $answers;
     /** @ORM\ManyToOne(targetEntity="Game", inversedBy="questions") */
     private int $game;
 }
