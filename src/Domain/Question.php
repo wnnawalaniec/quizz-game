@@ -3,20 +3,21 @@ declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
+use JetBrains\PhpStorm\ArrayShape;
 use Wojciech\QuizGame\Domain\Question\Exception\EmptyTextGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoAnswerGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoCorrectAnswerGiven;
-use Wojciech\QuizGame\Domain\Question\Exception\RepeatingAnswersGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\TooManyCorrectAnswersGiven;
 
 /**
  * @Entity
  * @ORM\Table(name="question")
  */
-class Question
+class Question implements \JsonSerializable
 {
     /**
      * @param Answer[] $answers
@@ -24,13 +25,15 @@ class Question
      * @throws NoAnswerGiven
      * @throws TooManyCorrectAnswersGiven
      * @throws EmptyTextGiven
-     * @throws RepeatingAnswersGiven
      */
-    public function __construct(int $number, string $text, array $answers)
+    public function __construct(string $text, array $answers)
     {
-        $this->number = $number;
         $this->text = $text;
-        $this->answers = $answers;
+        $this->answers = new ArrayCollection();
+        foreach ($answers as $answer) {
+            $answer->setQuestion($this);
+            $this->answers->add($answer);
+        }
         $this->validateAnswers($answers);
         $this->validateText($text);
     }
@@ -40,7 +43,6 @@ class Question
      * @throws NoAnswerGiven
      * @throws NoCorrectAnswerGiven
      * @throws TooManyCorrectAnswersGiven
-     * @throws RepeatingAnswersGiven
      */
     protected function validateAnswers(array $answers): void
     {
@@ -56,11 +58,6 @@ class Question
         if (count($correct) > 1) {
             throw TooManyCorrectAnswersGiven::create();
         }
-
-        $answerNumbers = array_map(fn ($a) => $a->number(), $answers);
-        if (count(array_unique($answerNumbers)) !== count($answers)) {
-            throw RepeatingAnswersGiven::create($this->number);
-        }
     }
 
     /**
@@ -73,23 +70,37 @@ class Question
         }
     }
 
+    public function setGame(Game $game): void
+    {
+        $this->game = $game;
+    }
+
+    #[ArrayShape(['id' => "int", 'text' => "string", 'answers' => "mixed"])] public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'text' => $this->text,
+            'answers' => array_map(fn (Answer $a) => $a->jsonSerialize(), $this->answers->toArray())
+        ];
+    }
+
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue
      */
     private int $id;
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $number;
     /** @ORM\Column(type="string") */
     private string $text;
     /**
-     * @ORM\OneToMany(targetEntity="Answer", mappedBy="question")
+     * @ORM\OneToMany(targetEntity="Answer", mappedBy="question", cascade={"persist", "remove"})
      * @var Answer[]
      */
     private array|Collection $answers;
-    /** @ORM\ManyToOne(targetEntity="Game", inversedBy="questions") */
-    private int $game;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Game", inversedBy="questions")
+     * @ORM\JoinColumn(name="game_id", referencedColumnName="id")
+     */
+    private Game $game;
 }

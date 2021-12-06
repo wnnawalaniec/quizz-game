@@ -5,39 +5,48 @@ namespace Wojciech\QuizGame\Domain;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
+use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
 
 /**
  * @Entity
  * @ORM\Table(name="answer")
  */
-class Answer
+class Answer implements \JsonSerializable
 {
-    public function __construct(string $value, int $number, bool $isCorrect)
+    public function __construct(string $value, bool $isCorrect)
     {
         $this->value = $value;
-        $this->number = $number;
         $this->isCorrect = $isCorrect;
     }
 
-    #[Pure] public static function createCorrect(string $value, int $number): self
+    #[Pure] public static function createCorrect(string $value): self
     {
-        return new self($value, $number, true);
+        return new self($value, true);
     }
 
-    #[Pure] public static function createIncorrect(string $value, int $number): self
+    #[Pure] public static function createIncorrect(string $value): self
     {
-        return new self($value, $number, false);
-    }
-
-    public function number(): int
-    {
-        return $this->number;
+        return new self($value, false);
     }
 
     public function isCorrect(): bool
     {
         return $this->isCorrect;
+    }
+
+    public function setQuestion(Question $question): void
+    {
+        $this->question = $question;
+    }
+
+    #[ArrayShape(['id' => "int", 'text' => "string", 'is_correct' => "bool"])] public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'text' => $this->value,
+            'is_correct' => $this->isCorrect
+        ];
     }
 
     /**
@@ -48,14 +57,11 @@ class Answer
     private int $id;
     /** @ORM\Column(type="string") */
     private string $value;
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private int $number;
     /** @ORM\Column(type="boolean") */
     private bool $isCorrect;
+
     /**
      * @ORM\ManyToOne(targetEntity="Question", inversedBy="answers")
      */
-    private int $question;
+    private Question $question;
 }

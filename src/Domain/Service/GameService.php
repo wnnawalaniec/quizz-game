@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Wojciech\QuizGame\Domain\Service;
 
 use Wojciech\QuizGame\Domain\Game;
+use Wojciech\QuizGame\Domain\Question;
+use Wojciech\QuizGame\Domain\Service\Exception\CannotAddQuestionGameNotStartedYet;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
 
 class GameService
@@ -22,6 +24,17 @@ class GameService
             throw CannotStartNewGameWhenThereIsAlreadyOne::create();
         }
         $this->repository->store(Game::startNewGame([]));
+    }
+
+    /**
+     * @throws CannotAddQuestionGameNotStartedYet
+     */
+    public function addQuestion(Question $question): void
+    {
+        if ($this->repository->get() === null) {
+            throw CannotAddQuestionGameNotStartedYet::create();
+        }
+        $this->repository->get()->addQuestion($question);
     }
 
     private Game\Repository $repository;

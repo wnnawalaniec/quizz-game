@@ -9,7 +9,6 @@ use Wojciech\QuizGame\Domain\Question;
 use Wojciech\QuizGame\Domain\Question\Exception\EmptyTextGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoAnswerGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoCorrectAnswerGiven;
-use Wojciech\QuizGame\Domain\Question\Exception\RepeatingAnswersGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\TooManyCorrectAnswersGiven;
 
 class QuestionTest extends BaseTest
@@ -49,26 +48,12 @@ class QuestionTest extends BaseTest
         $this->assertException($expectedException, $act);
     }
 
-    public function testCreating_RepeatingAnswerGiven_ThrowsException(): void
-    {
-        $answerNo = 1;
-        $answers = [
-            Answer::createIncorrect('wrong', $answerNo),
-            Answer::createCorrect('correct', $answerNo)
-        ];
-
-        $act = fn () => $this->createQuestionWithAnswers($answers);
-
-        $expectedException = RepeatingAnswersGiven::create(self::QUESTION_NUMBER);
-        $this->assertException($expectedException, $act);
-    }
-
     /** @dataProvider emptyTextProvider */
     public function testCreating_EmptyTextGiven_ThrowsException(string $text): void
     {
         $emptyText = $text;
 
-        $act = fn () => new Question(self::QUESTION_NUMBER, $emptyText, [Answer::createCorrect('Answer', 1)]);
+        $act = fn () => new Question($emptyText, [Answer::createCorrect('Answer')]);
 
         $expectedException = EmptyTextGiven::create();
         $this->assertException($expectedException, $act);
@@ -86,22 +71,20 @@ class QuestionTest extends BaseTest
     public function testCreating_AnswersAndTextGiven_QuestionCreated(): void
     {
         $answers = [
-            Answer::createIncorrect('wrong', 1),
-            Answer::createCorrect('correct', 2)
+            Answer::createIncorrect('wrong'),
+            Answer::createCorrect('correct')
         ];
         $text = self::QUESTION;
-        $number = self::QUESTION_NUMBER;
 
-        new Question($number, $text, $answers);
+        new Question($text, $answers);
 
         $this->assertNoExceptions();
     }
 
     private function createQuestionWithAnswers(array $answers): Question
     {
-        return new Question(self::QUESTION_NUMBER, self::QUESTION, $answers);
+        return new Question(self::QUESTION, $answers);
     }
 
     const QUESTION = 'Question?';
-    const QUESTION_NUMBER = 1;
 }

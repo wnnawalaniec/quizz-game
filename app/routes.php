@@ -28,6 +28,9 @@ return function (App $app) {
     $app
         ->group('/api', function (RouteCollectorProxy $group) {
             $group->post('/game/create', [GameController::class, 'createNewGame']);
+            $group->get('/game', [GameController::class, 'game']);
+            $group->post('/questions', [GameController::class, 'addQuestion']);
+            $group->get('/questions', [GameController::class, 'listQuestions']);
         })
         ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
         ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class));
