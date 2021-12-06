@@ -8,15 +8,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class SessionMiddleware implements MiddlewareInterface
+class NoCacheMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
-        $request = $request->withAttribute('session', $_SESSION);
-        return $handler->handle($request);
+        $response = $handler->handle($request);
+        return $response->withHeader('Cache-Control', 'no-cache, must-revalidate, max-age=0');
     }
 }

@@ -8,11 +8,13 @@ use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Wojciech\QuizGame\Application\AuthenticationService;
 use Wojciech\QuizGame\Application\Settings;
 use Wojciech\QuizGame\Application\Transaction;
 use Wojciech\QuizGame\Domain\Game\Repository;
 use Wojciech\QuizGame\Domain\Service\GameService;
 use Wojciech\QuizGame\Infrastructure\Application\DoctrineTransaction;
+use Wojciech\QuizGame\Infrastructure\Application\SessionBasedAuthenticationService;
 use Wojciech\QuizGame\Infrastructure\Domain\Game\DoctrineRepository;
 
 return function (ContainerBuilder $containerBuilder) {
@@ -39,6 +41,7 @@ return function (ContainerBuilder $containerBuilder) {
         },
         Transaction::class => function (ContainerInterface $c) {
             return new DoctrineTransaction($c->get(EntityManagerInterface::class));
-        }
+        },
+        AuthenticationService::class => fn (ContainerInterface $c) => SessionBasedAuthenticationService::getInstance($c->get(Settings::class))
     ]);
 };

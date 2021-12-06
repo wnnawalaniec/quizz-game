@@ -28,7 +28,9 @@ return function (ContainerBuilder $containerBuilder) {
                     'dbname'   => $_ENV['MYSQL_DATABASE'],
                     'host'     => $_ENV['MYSQL_HOST']
                 ],
-                'doctrine_entities' =>[ __DIR__ . '/../src']
+                'doctrine_entities' =>[ __DIR__ . '/../src'],
+                'username' => $_ENV['GAME_ADMIN_LOGIN'],
+                'password' => $_ENV['GAME_ADMIN_PASSWORD'],
             ]);
         }
     ]);
