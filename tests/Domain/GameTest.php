@@ -3,14 +3,20 @@ declare(strict_types=1);
 
 namespace Tests\Wojciech\QuizGame\Domain;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Tests\Wojciech\QuizGame\BaseTest;
 use Wojciech\QuizGame\Domain\Answer;
 use Wojciech\QuizGame\Domain\Game;
+use Wojciech\QuizGame\Domain\Game\Exception\AlreadyScored;
+use Wojciech\QuizGame\Domain\Game\Exception\AnswerIsNotForCurrentQuestion;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
+use Wojciech\QuizGame\Domain\Game\Exception\PlayerIsNotSupposedThisGame;
 use Wojciech\QuizGame\Domain\Player;
 use Wojciech\QuizGame\Domain\Question;
+use Wojciech\QuizGame\Domain\Score;
 
 class GameTest extends BaseTest
 {
@@ -82,7 +88,7 @@ class GameTest extends BaseTest
 
         $act = fn () => $game->currentQuestion();
 
-        $expectedException = Game\Exception\GameNotStarted::create();
+        $expectedException = GameNotStarted::create();
         $this->assertException($expectedException, $act);
     }
 
@@ -116,14 +122,98 @@ class GameTest extends BaseTest
         $this->assertException($expectedException, $act);
     }
 
+    public function testScore_GameIsNotStarted_ThrowsException(): void
+    {
+        $game = Game::createNewGame();
+        $answers = $this->createAnswers();
+        $game->addQuestion($this->createQuestion($answers));
+        $scoringPlayer = $this->createPlayer();
+        $game->join($scoringPlayer);
+        $givenAnswer = $answers[0];
+
+        $act = fn () => $game->score($scoringPlayer, $givenAnswer);
+
+        $expectedException = GameNotStarted::create();
+        $this->assertException($expectedException, $act);
+    }
+
+    public function testScore_PlayerOutsideGame_ThrowsException(): void
+    {
+        $game = Game::createNewGame();
+        $answers = $this->createAnswers();
+        $game->addQuestion($this->createQuestion($answers));
+        $joinedPlayer = $this->createPlayer();
+        $game->join($joinedPlayer);
+        $givenAnswer = $answers[0];
+        $notJoinedPlayer = $this->createPlayer();
+        $game->start();
+
+        $act = fn () => $game->score($notJoinedPlayer, $givenAnswer);
+
+        $expectedException = PlayerIsNotSupposedThisGame::create();
+        $this->assertException($expectedException, $act);
+    }
+
+    public function testScore_AnswerNotForQuestion_ThrowsException(): void
+    {
+        $game = Game::createNewGame();
+        $answers = $this->createAnswers();
+        $game->addQuestion($this->createQuestion($answers));
+        $scoringPlayer = $this->createPlayer();
+        $game->join($scoringPlayer);
+        $givenAnswer = Answer::createIncorrect('not for current question');
+        $game->start();
+
+        $act = fn () => $game->score($scoringPlayer, $givenAnswer);
+
+        $expectedException = AnswerIsNotForCurrentQuestion::create();
+        $this->assertException($expectedException, $act);
+    }
+
+    public function testScore_AlreadyAnswered_ThrowsException(): void
+    {
+        $game = Game::createNewGame();
+        $givenAnswer = $this->createStub(Answer::class);
+        $question = $this->createStub(Question::class);
+        $question->method('answers')->willReturn(new ArrayCollection([$givenAnswer]));
+        $question->method('equals')->willReturn(true);
+        $scoringPlayer = $this->createStub(Player::class);
+        $scoringPlayer->method('equals')->willReturn(true);
+        $game->addQuestion($question);
+        $game->join($scoringPlayer);
+        $game->start();
+        $game->score($scoringPlayer, $givenAnswer);
+
+        $act = fn () => $game->score($scoringPlayer, $givenAnswer);
+
+        $expectedException = AlreadyScored::create();
+        $this->assertException($expectedException, $act);
+    }
+
+    public function testScore_QuestionNotAnswered_ScoreSubmitted(): void
+    {
+        $game = Game::createNewGame();
+        $question = $this->createQuestion();
+        $givenAnswer = $question->answers()[0];
+        $scoringPlayer = $this->createPlayer();
+        $game->addQuestion($question);
+        $game->join($scoringPlayer);
+        $game->start();
+
+        $game->score($scoringPlayer, $givenAnswer);
+
+        $expectedScore = new Score($game, $scoringPlayer, $question, $givenAnswer);
+        $this->assertEquals($expectedScore, $game->scores()->toArray()[0]);
+    }
+
     protected function createAnswers(): array
     {
         return [Answer::createCorrect('1'), Answer::createIncorrect('1')];
     }
 
-    protected function createQuestion(): Question
+    protected function createQuestion(array $answers = null): Question
     {
-        return new Question('q', ...$this->createAnswers());
+        return new Question('q', ...($answers ?? $this->createAnswers()));
     }
 
     protected function createPlayer(): Player

@@ -5,6 +5,7 @@ namespace Wojciech\QuizGame\Domain;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
+use JetBrains\PhpStorm\Pure;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 
 /**
@@ -26,6 +27,12 @@ class Player
     public function id(): string
     {
         return $this->id;
+    }
+
+    #[Pure] public function equals(Player $player): bool
+    {
+        return $this->id === $player->id
+            && $this->game->id() === $player->game->id();
     }
 
     /**

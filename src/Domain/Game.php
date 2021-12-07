@@ -8,10 +8,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\ArrayShape;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
+use Wojciech\QuizGame\Domain\Game\Exception\AlreadyScored;
+use Wojciech\QuizGame\Domain\Game\Exception\AnswerIsNotForCurrentQuestion;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
+use Wojciech\QuizGame\Domain\Game\Exception\PlayerIsNotSupposedThisGame;
 use Wojciech\QuizGame\Domain\Game\State;
 
 /**
@@ -30,7 +33,7 @@ class Game implements \JsonSerializable
         $this->players = new ArrayCollection($players);
         $this->questions = new ArrayCollection($questions);
         $this->currentQuestion = -1;
-        $this->score = new ArrayCollection($score);
+        $this->scores = new ArrayCollection($score);
     }
 
     public static function createNewGame(Question...$questions): self
@@ -117,6 +120,43 @@ class Game implements \JsonSerializable
     }
 
     /**
+     * @throws AnswerIsNotForCurrentQuestion
+     * @throws PlayerIsNotSupposedThisGame
+     * @throws GameNotStarted
+     * @throws AlreadyScored
+     */
+    public function score(Player $player, Answer $answer): void
+    {
+        if (!$this->isStarted()) {
+            throw GameNotStarted::create();
+        }
+
+        if (!$this->players->contains($player)) {
+            throw PlayerIsNotSupposedThisGame::create();
+        }
+
+        if (!$this->currentQuestion()->answers()->contains($answer)) {
+            throw AnswerIsNotForCurrentQuestion::create();
+        }
+
+        foreach ($this->scores as $score) {
+            if (
+                $score->question()->equals($this->currentQuestion())
+                && $score->player()->equals($player)
+            ) {
+                throw AlreadyScored::create();
+            }
+        }
+
+        $this->scores->add(new Score($this, $player, $this->currentQuestion(), $answer));
+    }
+
+    public function scores(): Collection
+    {
+        return $this->scores;
+    }
+
+    /**
      * @throws GameNotStarted
      */
     public function currentQuestion(): Question
@@ -164,6 +204,9 @@ class Game implements \JsonSerializable
     private Collection $questions;
     /** @ORM\Column(type="integer") */
     private int $currentQuestion;
-    /** @var Collection<Score> */
-    private Collection $score;
+    /**
+     * @ORM\OneToMany(targetEntity="Score", mappedBy="game", cascade={"persist", "remove"})
+     * @var Collection<Score>
+     */
+    private Collection $scores;
 }

@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
 use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\Pure;
 use Wojciech\QuizGame\Domain\Question\Exception\EmptyTextGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoAnswerGiven;
 use Wojciech\QuizGame\Domain\Question\Exception\NoCorrectAnswerGiven;
@@ -101,6 +102,12 @@ class Question implements \JsonSerializable
         ];
     }
 
+    #[Pure] public function equals(Question $currentQuestion): bool
+    {
+        return $this->id === $currentQuestion->id
+            && $this->game->id() === $currentQuestion->game->id();
+    }
+
     /**
      * @ORM\Id
      * @ORM\Column(type="integer")
@@ -114,7 +121,6 @@ class Question implements \JsonSerializable
      * @var Collection<Answer>
      */
     private Collection $answers;
-
     /**
      * @ORM\ManyToOne(targetEntity="Game", inversedBy="questions")
      * @ORM\JoinColumn(name="game_id", referencedColumnName="id")
