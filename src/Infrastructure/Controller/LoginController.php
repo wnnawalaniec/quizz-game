@@ -20,6 +20,11 @@ class LoginController
     public function login(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         if ($this->authenticationService->isAuthenticated()) {
+            if (isset($request->getQueryParams()['redirect'])) {
+                return $response
+                    ->withHeader('Location', $request->getQueryParams()['redirect'])
+                    ->withStatus(302);
+            }
             return $response;
         }
 

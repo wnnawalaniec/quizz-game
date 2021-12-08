@@ -1,0 +1,42 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ parent() }}
+{% endblock %}
+{% block header %}
+<a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+    <img src="/static/logo.svg" width="40px" height="32px" class="m-2">
+    <span class="fs-4">Baby Shower Quiz</span>
+</a>
+{% endblock %}
+{% block content %}
+    <h1>Panel gospodarza</h1>
+    {% for error in errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endfor %}
+    <div>
+        {% if game.state == 'NEW_GAME' %}
+            new game
+        {% endif %}
+
+
+        {% if game.state == 'STARTED' %}
+            started
+        {% endif %}
+
+
+        {% if game.state == 'FNIISHED' %}
+            new game
+        {% endif %}
+
+
+        {% if game is null %}
+            <form action="/admin/game/create" method="post">
+                <button type="submit" class="btn btn-success" onclick="createGame()">Stwórz nową grę</button>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}

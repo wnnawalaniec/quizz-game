@@ -7,6 +7,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
+use Slim\Views\Twig;
 use Wojciech\QuizGame\Application\Service\Persistence;
 use Wojciech\QuizGame\Application\UserSession;
 use Wojciech\QuizGame\Domain\Answer;
@@ -44,14 +45,23 @@ class GameController
     public function createNewGame(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $this->gameService->createNew();
+            $game = $this->gameService->createNew();
         } catch (CannotStartNewGameWhenThereIsAlreadyOne $e) {
-            $response = $response->withStatus(400);
-            $response->getBody()->write(json_encode(['error' => 'NOT_FINISHED_GAME_ALREADY_EXISTS']));
-            return $response;
+            $errors =[
+                'Nie można uruchomić nowej gry gdy już jedna działa.'
+            ];
         }
         $this->persistence->flush();
-        return $response->withStatus(204);
+
+        $view = Twig::fromRequest($request);
+        return $view->render(
+            $response,
+            'admin.html.twig',
+            [
+                'game' => $game ?? null,
+                'errors' => $errors ?? []
+            ]
+        );
     }
 
     public function addQuestion(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -105,13 +115,12 @@ class GameController
     public function game(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $response->getBody()->write(json_encode($this->gameService->game()));
-            return $response;
+            $game = $this->gameService->game();
         } catch (NoGameExists $e) {
-            $response->withStatus(409);
-            $response->getBody()->write(json_encode(['error' => 'NO_GAME_EXISTS']));
-            return $response;
+            $game = null;
         }
+        $view = Twig::fromRequest($request);
+        return $view->render($response, 'admin.html.twig', ['game'=>$game]);
     }
 
     public function startGame(RequestInterface $request, ResponseInterface $response): ResponseInterface

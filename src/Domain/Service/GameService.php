@@ -35,7 +35,7 @@ class GameService
     /**
      * @throws CannotStartNewGameWhenThereIsAlreadyOne
      */
-    public function createNew(): void
+    public function createNew(): Game
     {
         $game = $this->repository->get();
 
@@ -47,6 +47,7 @@ class GameService
             $this->repository->clear();
         }
         $this->repository->store(Game::createNewGame());
+        return $game;
     }
 
     /**

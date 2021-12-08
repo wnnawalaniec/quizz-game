@@ -8,6 +8,7 @@ use Monolog\Logger;
 use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Views\Twig;
 use Wojciech\QuizGame\Application\Service\Authentication;
 use Wojciech\QuizGame\Application\Service\Persistence;
 use Wojciech\QuizGame\Application\Settings;
@@ -53,6 +54,10 @@ return function (ContainerBuilder $containerBuilder) {
             $c->get(Settings::class),
             $c->get(UserSession::class)
         ),
-        UserSession::class => fn (ContainerInterface $c) => GlobalUserSession::getInstance()
+        UserSession::class => fn (ContainerInterface $c) => GlobalUserSession::getInstance(),
+        Twig::class => fn (ContainerInterface $c) => Twig::create(
+            __DIR__ . '/../templates',
+            ['cache' => $c->get(Settings::class)->get('twig_cache')]
+        )
     ]);
 };

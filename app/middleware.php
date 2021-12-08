@@ -7,7 +7,6 @@ use Slim\Views\TwigMiddleware;
 use Wojciech\QuizGame\Infrastructure\Middleware\SessionMiddleware;
 
 return function (App $app) {
-    $app
-        ->add(SessionMiddleware::class)
-        ->add(TwigMiddleware::createFromContainer($app, Twig::class));
+    $app->add(SessionMiddleware::class);
+    $app->add(TwigMiddleware::create($app, $app->getContainer()->get(Twig::class)));
 };

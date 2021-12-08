@@ -6,6 +6,9 @@ use Slim\Factory\ServerRequestCreatorFactory;
 use Slim\ResponseEmitter;
 use Wojciech\QuizGame\Application\Settings;
 
+error_reporting(0);
+ini_set('display_errors', 0);
+
 require_once __DIR__ . '/../app/bootstrap.php';
 
 // Instantiate the app
