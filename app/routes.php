@@ -39,7 +39,8 @@ return function (App $app) {
 
     $app
         ->group('/api', function (RouteCollectorProxy $group) {
-            $group->post('/api/game/join', [GameController::class, 'joinGame']);
+            $group->post('/game/join', [GameController::class, 'joinGame']);
+            $group->post('/game/score', [GameController::class, 'score']);
         })
         ->addMiddleware($app->getContainer()->get(JsonApplicationMiddleware::class))
         ->addMiddleware($app->getContainer()->get(SessionMiddleware::class));

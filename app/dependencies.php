@@ -12,12 +12,14 @@ use Wojciech\QuizGame\Application\Service\Authentication;
 use Wojciech\QuizGame\Application\Service\Persistence;
 use Wojciech\QuizGame\Application\Settings;
 use Wojciech\QuizGame\Application\UserSession;
-use Wojciech\QuizGame\Domain\Game\Repository;
+use Wojciech\QuizGame\Domain\Game\Repository as GameRepositoryInterface;
+use Wojciech\QuizGame\Domain\Player\Repository as PlayerRepositoryInterface;
 use Wojciech\QuizGame\Domain\Service\GameService;
 use Wojciech\QuizGame\Infrastructure\Application\GlobalUserSession;
 use Wojciech\QuizGame\Infrastructure\Application\Service\DoctrinePersistence;
 use Wojciech\QuizGame\Infrastructure\Application\Service\SessionBasedAuthentication;
-use Wojciech\QuizGame\Infrastructure\Domain\Game\DoctrineRepository;
+use Wojciech\QuizGame\Infrastructure\Domain\Game\DoctrineRepository as GameRepository;
+use Wojciech\QuizGame\Infrastructure\Domain\Player\DoctrineRepository as PlayerRepository;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -35,11 +37,14 @@ return function (ContainerBuilder $containerBuilder) {
 
             return $logger;
         },
-        Repository::class => function (ContainerInterface $c) {
-            return new DoctrineRepository($c->get(EntityManagerInterface::class));
+        GameRepositoryInterface::class => function (ContainerInterface $c) {
+            return new GameRepository($c->get(EntityManagerInterface::class));
+        },
+        PlayerRepositoryInterface::class => function (ContainerInterface $c) {
+            return new PlayerRepository($c->get(EntityManagerInterface::class));
         },
         GameService::class => function (ContainerInterface $c) {
-            return new GameService($c->get(Repository::class));
+            return new GameService($c->get(GameRepositoryInterface::class));
         },
         Persistence::class => function (ContainerInterface $c) {
             return new DoctrinePersistence($c->get(EntityManagerInterface::class));

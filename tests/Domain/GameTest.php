@@ -179,7 +179,9 @@ class GameTest extends BaseTest
         $question->method('equals')->willReturn(true);
         $scoringPlayer = $this->createStub(Player::class);
         $scoringPlayer->method('equals')->willReturn(true);
+        $anotherPlayer = $this->createStub(Player::class);
         $game->addQuestion($question);
+        $game->join($anotherPlayer);
         $game->join($scoringPlayer);
         $game->start();
         $game->score($scoringPlayer, $givenAnswer);
@@ -204,6 +206,40 @@ class GameTest extends BaseTest
 
         $expectedScore = new Score($game, $scoringPlayer, $question, $givenAnswer);
         $this->assertEquals($expectedScore, $game->scores()->toArray()[0]);
+    }
+
+    public function testScore_LastPlayerScoredLastQuestion_GameIsFinished(): void
+    {
+        $game = Game::createNewGame();
+        $lastQuestion = $this->createQuestion();
+        $lastAnswer = $lastQuestion->answers()[0];
+        $lastPlayer = $this->createPlayer();
+        $game->addQuestion($lastQuestion);
+        $game->join($lastPlayer);
+        $game->start();
+
+        $game->score($lastPlayer, $lastAnswer);
+
+        $expectedState = Game\State::FINISHED;
+        $this->assertEquals($expectedState, $game->state());
+    }
+
+    public function testScore_AllPlayersAnsweredQuestion_CurrentQuestionChanged(): void
+    {
+        $game = Game::createNewGame();
+        $firstQuestion = $this->createQuestion();
+        $secondQuestion = $this->createQuestion();
+        $answer = $firstQuestion->answers()[0];
+        $player = $this->createPlayer();
+        $game->addQuestion($firstQuestion);
+        $game->addQuestion($secondQuestion);
+        $game->join($player);
+        $game->start();
+
+        $game->score($player, $answer);
+
+        $expectedQuestion = $secondQuestion;
+        $this->assertSame($expectedQuestion, $game->currentQuestion());
     }
 
     protected function createAnswers(): array

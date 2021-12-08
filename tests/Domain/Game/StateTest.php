@@ -18,13 +18,22 @@ class StateTest extends BaseTest
         $this->assertEquals(State::STARTED, $nextState);
     }
 
-    public function testGoingToNextStage_GameStarted_ThrowsException(): void
+    public function testGoingToNextStage_GameStarted_GameFinished(): void
     {
         $state = State::STARTED;
 
+        $nextState = $state->nextStage();
+
+        $this->assertEquals(State::FINISHED, $nextState);
+    }
+
+    public function testGoingToNextStage_GameFinished_ThrowsException(): void
+    {
+        $state = State::FINISHED;
+
         $act = fn () => $state->nextStage();
 
-        $expectedException = GameIsFinished::create($state);
+        $expectedException = GameIsFinished::createWithLastStage($state);
         $this->assertException($expectedException, $act);
     }
 }

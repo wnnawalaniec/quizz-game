@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Entity;
 use JetBrains\PhpStorm\ArrayShape;
@@ -40,6 +41,11 @@ class Answer implements \JsonSerializable
         $this->question = $question;
     }
 
+    public function id(): int
+    {
+        return $this->id;
+    }
+
     #[ArrayShape([
         'id' => "int",
         'text' => "string",
@@ -64,9 +70,13 @@ class Answer implements \JsonSerializable
     private string $value;
     /** @ORM\Column(type="boolean") */
     private bool $isCorrect;
-
     /**
      * @ORM\ManyToOne(targetEntity="Question", inversedBy="answers")
      */
     private Question $question;
+    /**
+     * @ORM\OneToMany(targetEntity="Score", mappedBy="answer")
+     * @var Collection<Score>
+     */
+    private Collection $scores;
 }

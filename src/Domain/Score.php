@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
  * @ORM\Table(name="score")
  */
-class Score
+class Score implements \JsonSerializable
 {
     /**
      * @param Game $game
@@ -35,6 +35,20 @@ class Score
         return $this->question;
     }
 
+    public function jsonSerialize(): array
+    {
+        return [
+            'player' => $this->player->id(),
+            'question' => $this->question->id(),
+            'answer' => $this->answer->id()
+        ];
+    }
+
+    public function answer(): Answer
+    {
+        return $this->answer;
+    }
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -47,15 +61,16 @@ class Score
      */
     private Game $game;
     /**
-     * @ORM\OneToOne(targetEntity="Player")
+     * @ORM\ManyToOne(targetEntity="Player", inversedBy="scores")
      */
     private Player $player;
     /**
-     * @ORM\OneToOne(targetEntity="Question")
+     * @ORM\ManyToOne(targetEntity="Question", inversedBy="scores")
      */
     private Question $question;
+
     /**
-     * @ORM\OneToOne(targetEntity="Answer")
+     * @ORM\ManyToOne(targetEntity="Answer", inversedBy="scores")
      */
     private Answer $answer;
 }

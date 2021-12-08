@@ -37,8 +37,14 @@ class GameService
      */
     public function createNew(): void
     {
-        if ($this->repository->get() !== null) {
-            throw CannotStartNewGameWhenThereIsAlreadyOne::create();
+        $game = $this->repository->get();
+
+        if ($game) {
+            if ($game->state() !== Game\State::FINISHED) {
+                throw CannotStartNewGameWhenThereIsAlreadyOne::create();
+            }
+
+            $this->repository->clear();
         }
         $this->repository->store(Game::createNewGame());
     }
@@ -100,6 +106,7 @@ class GameService
     /**
      * @throws GameNotStarted
      * @throws NoGameExists
+     * @throws GameIsFinished
      */
     public function currentQuestion(): Question
     {

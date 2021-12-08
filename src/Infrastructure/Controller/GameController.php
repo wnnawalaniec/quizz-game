@@ -10,12 +10,16 @@ use RuntimeException;
 use Wojciech\QuizGame\Application\Service\Persistence;
 use Wojciech\QuizGame\Application\UserSession;
 use Wojciech\QuizGame\Domain\Answer;
+use Wojciech\QuizGame\Domain\Game\Exception\AlreadyScored;
+use Wojciech\QuizGame\Domain\Game\Exception\AnswerIsNotForCurrentQuestion;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
 use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
+use Wojciech\QuizGame\Domain\Game\Exception\PlayerIsNotSupposedThisGame;
 use Wojciech\QuizGame\Domain\Player;
+use Wojciech\QuizGame\Domain\Player\Repository;
 use Wojciech\QuizGame\Domain\Question;
 use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlreadyOne;
 use Wojciech\QuizGame\Domain\Service\Exception\NoGameExists;
@@ -28,11 +32,13 @@ class GameController
     public function __construct(
         GameService $gameService,
         Persistence $transaction,
-        UserSession $session
+        UserSession $session,
+        Repository $repository
     ){
         $this->gameService = $gameService;
         $this->persistence = $transaction;
         $this->session = $session;
+        $this->repository = $repository;
     }
 
     public function createNewGame(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -165,6 +171,59 @@ class GameController
         }
     }
 
+    public function score(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        if (!$this->session->isCreated()) {
+            throw new RuntimeException('This endpoint requires session');
+        }
+
+        if (!$this->session->has('player')) {
+            $response->getBody()->write(json_encode(['error' => 'ACCESS_DENIED']));
+            return $response->withStatus(403);
+        }
+
+        $game = $this->gameService->game();
+        $player = $this->repository->get($this->session->get('player')['id']);
+
+        if (is_null($player) || $this->session->get('player')['game'] !== $game->id()) {
+            $response->getBody()->write(json_encode(['error' => 'ACCESS_DENIED']));
+            return $response->withStatus(403);
+        }
+
+        $data = json_decode($request->getBody()->getContents(), true);
+        $answer = $game
+            ->currentQuestion()
+            ->answers()
+            ->filter(fn (Answer $a) => $a->id() === $data['answer'])
+            ->first();
+
+        if ($answer === false) {
+            $response->getBody()->write(json_encode(['error' => 'QUESTION_CANNOT_BE_ANSWERED_WITH_IT']));
+            return $response->withStatus(400);
+        }
+
+        try {
+            $game->score($player, $answer);
+            $this->persistence->flush();
+            return $response->withStatus(201);
+        } catch (AlreadyScored $e) {
+            $response->getBody()->write(json_encode(['error' => 'ALREADY_SCORED']));
+            return $response->withStatus(400);
+        } catch (AnswerIsNotForCurrentQuestion $e) {
+            $response->getBody()->write(json_encode(['error' => 'QUESTION_CANNOT_BE_ANSWERED_WITH_IT']));
+            return $response->withStatus(400);
+        } catch (GameNotStarted $e) {
+            $response->getBody()->write(json_encode(['error' => 'GAME_NOT_STARTED']));
+            return $response->withStatus(409);
+        } catch (PlayerIsNotSupposedThisGame $e) {
+            $response->getBody()->write(json_encode(['error' => 'ACCESS_DENIED']));
+            return $response->withStatus(401);
+        } catch (GameIsFinished $e) {
+            $response->getBody()->write(json_encode(['error' => 'GAME_IS_FINISHED']));
+            return $response->withStatus(409);
+        }
+    }
+
     public function status(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
@@ -178,6 +237,11 @@ class GameController
                 'status' => 'GAME_NOT_STARTED',
                 'question' => null,
                 'answers' => []
+            ];
+        } catch (GameIsFinished $e) {
+            $status = [
+                'status' => 'GAME_FINISHED',
+                'results' => $game->results()
             ];
         }
 
@@ -211,4 +275,5 @@ class GameController
     private GameService $gameService;
     private Persistence $persistence;
     private UserSession $session;
+    private Repository $repository;
 }

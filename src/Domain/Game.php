@@ -7,12 +7,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\Pure;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Wojciech\QuizGame\Domain\Game\Exception\AlreadyScored;
 use Wojciech\QuizGame\Domain\Game\Exception\AnswerIsNotForCurrentQuestion;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotJoinGameWhichIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
+use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
+use Wojciech\QuizGame\Domain\Game\Exception\GameIsNotFinished;
 use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
 use Wojciech\QuizGame\Domain\Game\Exception\PlayerIsNotSupposedThisGame;
 use Wojciech\QuizGame\Domain\Game\State;
@@ -99,6 +102,9 @@ class Game implements \JsonSerializable
         $this->players->add($player);
     }
 
+    /**
+     * @return Collection<Player>
+     */
     public function players(): Collection
     {
         return $this->players;
@@ -124,6 +130,7 @@ class Game implements \JsonSerializable
      * @throws PlayerIsNotSupposedThisGame
      * @throws GameNotStarted
      * @throws AlreadyScored
+     * @throws GameIsFinished
      */
     public function score(Player $player, Answer $answer): void
     {
@@ -135,7 +142,7 @@ class Game implements \JsonSerializable
             throw PlayerIsNotSupposedThisGame::create();
         }
 
-        if (!$this->currentQuestion()->answers()->contains($answer)) {
+        if (!$this->currentQuestion()->answers() ->contains($answer)) {
             throw AnswerIsNotForCurrentQuestion::create();
         }
 
@@ -149,6 +156,14 @@ class Game implements \JsonSerializable
         }
 
         $this->scores->add(new Score($this, $player, $this->currentQuestion(), $answer));
+
+        if ($this->isLastQuestion()) {
+            if ($this->isLastScore()) {
+                $this->state = $this->state->nextStage();
+            }
+        } else {
+            $this->currentQuestion++;
+        }
     }
 
     public function scores(): Collection
@@ -157,14 +172,54 @@ class Game implements \JsonSerializable
     }
 
     /**
+     * @throws GameIsNotFinished
+     */
+    public function results(): array
+    {
+        if (!$this->isFinished()) {
+            throw GameIsNotFinished::create();
+        }
+
+        $results = [];
+        foreach ($this->scores as $score) {
+            $correct = $results['scores'][$score->player()->id()] ?? 0;
+            $results['scores'][$score->player()->id()]['score'] = $correct + (int) $score->answer()->isCorrect();
+            $results['scores'][$score->player()->id()]['name'] = $score->player()->name();
+        }
+
+        $results['questions'] = $this->questions->count();
+
+        return $results;
+    }
+
+    /**
      * @throws GameNotStarted
+     * @throws GameIsFinished
      */
     public function currentQuestion(): Question
     {
+        if ($this->isFinished()) {
+            throw GameIsFinished::create();
+        }
         if (!$this->isStarted()) {
             throw GameNotStarted::create();
         }
         return $this->questions->toArray()[$this->currentQuestion];
+    }
+
+    private function isLastQuestion(): bool
+    {
+        return $this->currentQuestion + 1 === $this->questions->count();
+    }
+
+    private function isLastScore(): bool
+    {
+        return $this->scores->count() === $this->players->count() * $this->questions->count();
+    }
+
+    #[Pure] private function isFinished(): bool
+    {
+        return $this->state() === State::FINISHED;
     }
 
     #[ArrayShape([
@@ -179,7 +234,7 @@ class Game implements \JsonSerializable
             'id' => $this->id,
             'state' => $this->state,
             'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
-            'players' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->players->toArray()),
+            'players' => array_map(fn (Player $p) => $p->jsonSerialize(), $this->players->toArray()),
         ];
     }
 

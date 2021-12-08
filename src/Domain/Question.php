@@ -80,6 +80,11 @@ class Question implements \JsonSerializable
         $this->game = $game;
     }
 
+    public function id(): int
+    {
+        return $this->id;
+    }
+
     /**
      * @return Collection<Answer>
      */
@@ -126,4 +131,9 @@ class Question implements \JsonSerializable
      * @ORM\JoinColumn(name="game_id", referencedColumnName="id")
      */
     private Game $game;
+    /**
+     * @ORM\OneToMany(targetEntity="Score", mappedBy="question")
+     * @var Collection<Score>
+     */
+    private Collection $scores;
 }
