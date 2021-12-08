@@ -46,7 +46,8 @@ class GameService
 
             $this->repository->clear();
         }
-        $this->repository->store(Game::createNewGame());
+        $game = Game::createNewGame();
+        $this->repository->store($game);
         return $game;
     }
 

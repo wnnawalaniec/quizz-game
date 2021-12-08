@@ -6,6 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Views\Twig;
+use Wojciech\QuizGame\Infrastructure\Controller\AdminController;
 use Wojciech\QuizGame\Infrastructure\Controller\GameController;
 use Wojciech\QuizGame\Infrastructure\Controller\LoginController;
 use Wojciech\QuizGame\Infrastructure\Middleware\AuthenticationGuardMiddleware;
@@ -22,8 +23,8 @@ return function (App $app) {
 
     $app
         ->group('/admin', function (RouteCollectorProxy $group) {
-            $group->get('/admin', [GameController::class, 'game']);
-            $group->post('/game/create', [GameController::class, 'createNewGame']);
+            $group->get('', [AdminController::class, 'panel']);
+            $group->post('', [AdminController::class, 'createGame']);
         })
         ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class))
         ->addMiddleware(new LoginRedirectMiddleware());

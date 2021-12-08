@@ -231,8 +231,8 @@ class Game implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'id' => $this->id,
-            'state' => $this->state,
+            'id' => (string) $this->id,
+            'state' => $this->state->value,
             'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
             'players' => array_map(fn (Player $p) => $p->jsonSerialize(), $this->players->toArray()),
         ];

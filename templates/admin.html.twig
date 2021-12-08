@@ -11,7 +11,6 @@
 </a>
 {% endblock %}
 {% block content %}
-    <h1>Panel gospodarza</h1>
     {% for error in errors %}
         <div class="alert alert-danger" role="alert">
             {{ error }}
@@ -19,7 +18,23 @@
     {% endfor %}
     <div>
         {% if game.state == 'NEW_GAME' %}
-            new game
+            <h2>Pytania</h2>
+            {% for question in game.questions %}
+            {% endfor %}
+            {% if game.questions is empty %}
+                Brak pytań.
+            {% endif %}
+            <form action="/admin/add/question" method="post">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Pytanie</span>
+                    <input name="question" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" required>
+                </div>
+                <div id="answers">
+
+                </div>
+                <button onclick="addAnswer()">+</button> Dodaj odpowiedź
+                <button class="btn btn-primary">Dodaj</button>
+            </form>
         {% endif %}
 
 
@@ -34,7 +49,7 @@
 
 
         {% if game is null %}
-            <form action="/admin/game/create" method="post">
+            <form action="/admin" method="post">
                 <button type="submit" class="btn btn-success" onclick="createGame()">Stwórz nową grę</button>
             </form>
         {% endif %}
