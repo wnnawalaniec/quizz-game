@@ -54,6 +54,14 @@ class JoinController
                 return $this->redirectToGame($response);
             }
 
+            if ($game->state() !== Game\State::NEW_GAME) {
+                match ($game->state()) {
+                    Game\State::STARTED => $msg = "Nie można dołączyć do gry, gdyż ta została już rozpoczęta.",
+                    Game\State::FINISHED => $msg = "Nie można dołączyć do gry, gdyż ta została już zakończona."
+                };
+                return $this->renderDisabled($request, $response, $msg);
+            }
+
             $player = new Player($request->getParsedBody()['name']);
             $this->gameService->join($player);
             $this->persistence->flush();
@@ -63,11 +71,10 @@ class JoinController
             ]);
             return $this->redirectToGame($response);
         } catch (CannotJoinGameWhichIsNotNew|NoGameExists) {
-            $view = Twig::fromRequest($request);
-            return $view->render(
+            return $this->renderError(
+                $request,
                 $response,
-                'join.html.twig',
-                ['error' => 'Gra jeszcze się nie rozpoczęła.']
+                'Nie można dołączyć do gry ponieważ została ona zakończona bądź jest w trakcie.'
             );
         }
     }
@@ -82,6 +89,26 @@ class JoinController
     {
         return $this->session->has('player')
             && $this->session->get('player')['game'] === $game->id();
+    }
+
+    protected function renderError(RequestInterface $request, ResponseInterface $response, string $error): ResponseInterface
+    {
+        $view = Twig::fromRequest($request);
+        return $view->render(
+            $response,
+            'join.html.twig',
+            ['error' => $error]
+        );
+    }
+
+    protected function renderDisabled(RequestInterface $request, ResponseInterface $response, string $error): ResponseInterface
+    {
+        $view = Twig::fromRequest($request);
+        return $view->render(
+            $response,
+            'join.html.twig',
+            ['disabled' => true, 'message' => $error]
+        );
     }
 
     private GameService $gameService;

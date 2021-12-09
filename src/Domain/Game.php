@@ -157,12 +157,12 @@ class Game implements \JsonSerializable
 
         $this->scores->add(new Score($this, $player, $this->currentQuestion(), $answer));
 
-        if ($this->isLastQuestion()) {
-            if ($this->isLastScore()) {
+        if ($this->allPlayersAnswered()) {
+            if ($this->isLastQuestion()) {
                 $this->state = $this->state->nextStage();
+            } else {
+                $this->currentQuestion++;
             }
-        } else {
-            $this->currentQuestion++;
         }
     }
 
@@ -212,14 +212,47 @@ class Game implements \JsonSerializable
         return $this->currentQuestion + 1 === $this->questions->count();
     }
 
-    private function isLastScore(): bool
+    private function allPlayersAnswered(): bool
     {
-        return $this->scores->count() === $this->players->count() * $this->questions->count();
+        return $this->scores->count() === $this->players->count() * ($this->currentQuestion + 1);
     }
 
     #[Pure] private function isFinished(): bool
     {
         return $this->state() === State::FINISHED;
+    }
+
+    public function hasAnsweredCurrentQuestion(Player $player): bool
+    {
+        return !$this
+            ->scores
+            ->filter(
+                fn (Score $score) => $score->player()->equals($player)
+                    && $score->question()->equals($this->currentQuestion())
+            )
+            ->isEmpty();
+    }
+
+    public function hasWon(Player $player): bool
+    {
+        $scores = $this->playersScores();
+        $highestScores = array_keys($scores, max($scores));
+        return in_array($player->id(), $highestScores);
+    }
+
+    #[Pure] protected function playersScores(): array
+    {
+        $scores = [];
+        foreach ($this->scores as $score) {
+            $correctAnswers = ($scores[$score->player()->id()] ?? 0) + (int)$score->answer()->isCorrect();
+            $scores[$score->player()->id()] = $correctAnswers;
+        }
+        return $scores;
+    }
+
+    #[Pure] public function playerScore(Player $player): int
+    {
+        return $this->playersScores()[$player->id()];
     }
 
     #[ArrayShape([

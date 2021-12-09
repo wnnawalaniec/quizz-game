@@ -1,0 +1,63 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ parent() }}
+{% endblock %}
+{% block content %}
+    <div class="col-lg-8 mx-auto p-3 py-md-5">
+        <main>
+            {% if hasStarted == true %}
+                {% if hasAnswered %}
+                    <main class="form-answer">
+                        <div class="text-center">
+                            <h1>Proszę czekać na pozostałych graczy</h1>
+                            <div class="m-5">
+                                <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                            </div>
+                            <i>W razie, gdyby oczekiwanie trwało za długo <a href="/game"><b>kliknij tutaj</b></a></i>
+                        </div>
+                        <script>
+                            refreshForEveryMS(1000)
+                        </script>
+                    </main>
+                {% else %}
+                    <main class="form-answer">
+                        {% if error is not null %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endif %}
+                        <form action="/game/score" method="post">
+                            <h1 class="h3 mb-3 fw-normal fw-bold">{{ question.text }}</h1>
+                            <div class="form-floating mb-1">
+                                {% for answer in question.answers %}
+                                    <div class="form-check mb-4 mt-4">
+                                        <input class="form-check-input fs-5" type="radio" name="answer" id="{{ answer.id }}" value="{{ answer.id }}" required>
+                                        <label class="form-check-label fs-5 w-100" for="{{ answer.id }}">
+                                            {{ answer.text }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button class="w-100 btn btn-lg btn-primary" type="submit">Zatwierdź</button>
+                        </form>
+                    </main>
+                {% endif %}
+            {% else %}
+                <main class="form-answer">
+                    <div class="text-center">
+                        <h1>Proszę czekać na rozpoczącie rozgrywki...</h1>
+                        <div class="m-5">
+                            <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                        </div>
+                        <i>W razie, gdyby oczekiwanie trwało za długo <a href="/game"><b>kliknij tutaj</b></a></i>
+                    </div>
+                    <script>
+                        refreshForEveryMS(3000)
+                    </script>
+                </main>
+            {% endif %}
+        </main>
+    </div>
+{% endblock %}

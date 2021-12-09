@@ -242,6 +242,26 @@ class GameTest extends BaseTest
         $this->assertSame($expectedQuestion, $game->currentQuestion());
     }
 
+    public function testScore_NotAllPlayersAnswered_CurrentQuestionHasntChanged(): void
+    {
+        $game = Game::createNewGame();
+        $firstQuestion = $this->createQuestion();
+        $secondQuestion = $this->createQuestion();
+        $answer = $firstQuestion->answers()[0];
+        $player01 = $this->createPlayer();
+        $player02 = $this->createPlayer();
+        $game->addQuestion($firstQuestion);
+        $game->addQuestion($secondQuestion);
+        $game->join($player01);
+        $game->join($player02);
+        $game->start();
+
+        $game->score($player01, $answer);
+
+        $expectedQuestion = $firstQuestion;
+        $this->assertSame($expectedQuestion, $game->currentQuestion());
+    }
+
     protected function createAnswers(): array
     {
         return [Answer::createCorrect('1'), Answer::createIncorrect('1')];

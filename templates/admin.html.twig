@@ -4,54 +4,37 @@
 {% block head %}
     {{ parent() }}
 {% endblock %}
-{% block header %}
-<a href="/" class="d-flex align-items-center text-dark text-decoration-none">
-    <img src="/static/logo.svg" width="40px" height="32px" class="m-2">
-    <span class="fs-4">Baby Shower Quiz</span>
-</a>
-{% endblock %}
 {% block content %}
-    {% for error in errors %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
-        </div>
-    {% endfor %}
-    <div>
-        {% if game.state == 'NEW_GAME' %}
-            <h2>Pytania</h2>
-            {% for question in game.questions %}
+    <div class="col-lg-8 mx-auto p-3 py-md-5">
+        <main>
+            {% for error in errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
             {% endfor %}
-            {% if game.questions is empty %}
-                Brak pytań.
-            {% endif %}
-            <form action="/admin/add/question" method="post">
-                <div class="input-group mb-3">
-                    <span class="input-group-text" id="inputGroup-sizing-default">Pytanie</span>
-                    <input name="question" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" required>
-                </div>
-                <div id="answers">
-
-                </div>
-                <button onclick="addAnswer()">+</button> Dodaj odpowiedź
-                <button class="btn btn-primary">Dodaj</button>
-            </form>
-        {% endif %}
+            <div>
+                {% if game.state == 'NEW_GAME' %}
+                    {{ error }}
+                    <form method="post" action="/admin/game/start">
+                        <button class="w-100 btn btn-lg btn-success" type="submit">Rozpocznij</button>
+                    </form>
+                {% endif %}
 
 
-        {% if game.state == 'STARTED' %}
-            started
-        {% endif %}
+                {% if game.state == 'STARTED' %}
+                    game started
+                {% endif %}
 
 
-        {% if game.state == 'FNIISHED' %}
-            new game
-        {% endif %}
+                {% if game.state == 'FNIISHED' %}
+                    not implemented
+                {% endif %}
 
 
-        {% if game is null %}
-            <form action="/admin" method="post">
-                <button type="submit" class="btn btn-success" onclick="createGame()">Stwórz nową grę</button>
-            </form>
-        {% endif %}
+                {% if game is null %}
+                    not implemented
+                {% endif %}
+            </div>
+        </main>
     </div>
 {% endblock %}
