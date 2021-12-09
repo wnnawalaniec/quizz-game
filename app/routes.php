@@ -5,9 +5,9 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
-use Slim\Views\Twig;
 use Wojciech\QuizGame\Infrastructure\Controller\AdminController;
 use Wojciech\QuizGame\Infrastructure\Controller\GameController;
+use Wojciech\QuizGame\Infrastructure\Controller\JoinController;
 use Wojciech\QuizGame\Infrastructure\Controller\LoginController;
 use Wojciech\QuizGame\Infrastructure\Middleware\AuthenticationGuardMiddleware;
 use Wojciech\QuizGame\Infrastructure\Middleware\JsonApplicationMiddleware;
@@ -20,6 +20,14 @@ return function (App $app) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
     });
+
+
+    $app->get('/join', [JoinController::class, 'joinView']);
+    $app->post('/join', [JoinController::class, 'join']);
+
+
+
+
 
     $app
         ->group('/admin', function (RouteCollectorProxy $group) {

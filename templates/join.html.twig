@@ -1,0 +1,24 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ parent() }}
+{% endblock %}
+{% block header %}
+    <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+        <img src="/static/logo.svg" width="40px" height="32px" class="m-2">
+        <span class="fs-4">Baby Shower Quiz</span>
+    </a>
+{% endblock %}
+{% block content %}
+    <main class="form-signin">
+        <form action="/join" method="post">
+            <h1 class="h3 mb-3 fw-normal">Dołącz do gry</h1>
+            <div class="form-floating mb-1">
+                <input type="text" class="form-control" id="name" name="name" placeholder="Jan Kowalski" autocomplete="given-name" required>
+                <label for="floatingInput">Nazwa gracza</label>
+            </div>
+            <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        </form>
+    </main>
+{% endblock %}
