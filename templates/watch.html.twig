@@ -1,0 +1,41 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ parent() }}
+    <style>
+        body {
+            display: flex;
+            height: 100% !important;
+            text-align: center !important;
+        }
+    </style>
+{% endblock %}
+{% block header %}
+{% endblock %}
+{% block content %}
+    {% if game.state == 'NEW_GAME' %}
+        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+            <div class="mb-auto"></div>
+            <main class="px-3">
+                <p class="fs-3">
+                    Wpisz
+                    <span class="fs-1 text-primary fw-bold">
+                        <script>document.write('http://' + window.location.hostname)</script>
+                    </span> w pasku adresu przeglądarki, aby do nas dołączyć.
+                </p>
+            </main>
+            <div class="mt-auto"></div>
+        </div>
+    {% else %}
+        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column text-white bg-dark">
+            <div class="mb-auto"></div>
+            <main class="px-3">
+                <img class="mb-4" src="/static/sad.svg" alt="" width="72" height="72">
+                <h1 class="h3 mb-3 fw-normal">Niestety, ale nie udało się.</h1>
+                <p>Twój wynik to: {{ score }}</p>
+            </main>
+            <div class="mt-auto"></div>
+        </div>
+    {% endif %}
+{% endblock %}

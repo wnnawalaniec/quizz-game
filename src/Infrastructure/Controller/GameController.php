@@ -48,6 +48,7 @@ class GameController
         }
 
         if (!$this->isInTheGame($game)) {
+            $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
 
@@ -56,6 +57,11 @@ class GameController
         }
 
         $player = $this->repository->get($this->session->get('player')['id']);
+
+        if (is_null($player) || !$this->isPlayerFromGame($game)) {
+            $this->session->destroy();
+            return $this->redirectToJoinGame($response);
+        }
 
         $view = Twig::fromRequest($request);
         return $view->render(
@@ -82,12 +88,14 @@ class GameController
         }
 
         if (!$this->isInTheGame($game)) {
+            $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
 
         $player = $this->repository->get($this->session->get('player')['id']);
 
         if (is_null($player) || !$this->isPlayerFromGame($game)) {
+            $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
 
@@ -130,12 +138,14 @@ class GameController
         }
 
         if (!$this->isInTheGame($game)) {
+            $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
 
         $player = $this->repository->get($this->session->get('player')['id']);
 
         if (is_null($player) || !$this->isPlayerFromGame($game)) {
+            $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
 
@@ -146,6 +156,24 @@ class GameController
             [
                 'hasWon' => $game->hasWon($player),
                 'score' => $game->playerScore($player),
+            ]
+        );
+    }
+
+    public function watch(RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $view = Twig::fromRequest($request);
+        try {
+            $game = $this->gameService->game();
+        } catch (NoGameExists $e) {
+            return $view->render($response, 'watch.html.twig');
+        }
+
+        return $view->render(
+            $response,
+            'watch.html.twig',
+            [
+                'game' => $game->jsonSerialize()
             ]
         );
     }
