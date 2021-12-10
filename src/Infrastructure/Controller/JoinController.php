@@ -30,7 +30,12 @@ class JoinController
             throw new RuntimeException('This endpoint requires session');
         }
 
-        $game = $this->gameService->game();
+
+        try {
+            $game = $this->gameService->game();
+        } catch (NoGameExists $e) {
+            return $this->renderDisabled($request, $response, 'Nie można dołączyć do gry ponieważ została ona zakończona bądź jest w trakcie.');
+        }
         if ($this->isInTheGame($game)) {
             return $this->redirectToGame($response);
         }
