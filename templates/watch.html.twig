@@ -15,6 +15,9 @@
 {% endblock %}
 {% block content %}
     {% if game.state == 'NEW_GAME' %}
+        <script>
+            refreshForEveryMS(3000)
+        </script>
         <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
             <div class="mb-auto"></div>
             <main class="px-3">
@@ -27,13 +30,51 @@
             </main>
             <div class="mt-auto"></div>
         </div>
-    {% else %}
-        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column text-white bg-dark">
+    {% elseif game.state == 'STARTED' %}
+        <script>
+            refreshForEveryMS(1000)
+        </script>
+        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+            <div class="mb-auto"></div>
+            <main class="px-1">
+                <p class="fs-1">
+                    {{currentQuestion.text}}
+                </p>
+            </main>
+            <div class="mt-auto"></div>
+        </div>
+    {% elseif game.state == 'FINISHED' %}
+        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
             <div class="mb-auto"></div>
             <main class="px-3">
-                <img class="mb-4" src="/static/sad.svg" alt="" width="72" height="72">
-                <h1 class="h3 mb-3 fw-normal">Niestety, ale nie udało się.</h1>
-                <p>Twój wynik to: {{ score }}</p>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Gracz</th>
+                        <th scope="col">Wynik</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for score in game.scores|sort((a,b) => a.score < b.score) %}
+                        <tr>
+                            <th scope="row">{{ loop.index }}</th>
+                            <td>{{ game.players|filter(p => p.id == score.player)|first.name }}</td>
+                            <td>{{ score.score }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </main>
+            <div class="mt-auto"></div>
+        </div>
+    {% else %}
+        <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+            <div class="mb-auto"></div>
+            <main class="px-3">
+                <p class="fs-3">
+                    .
+                </p>
             </main>
             <div class="mt-auto"></div>
         </div>

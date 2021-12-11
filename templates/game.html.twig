@@ -18,7 +18,7 @@
                             <i>W razie, gdyby oczekiwanie trwało za długo <a href="/game"><b>kliknij tutaj</b></a></i>
                         </div>
                         <script>
-                            refreshForEveryMS(1000)
+                            refreshForEveryMS(3000)
                         </script>
                     </main>
                 {% else %}
@@ -29,7 +29,7 @@
                             </div>
                         {% endif %}
                         <form action="/game/score" method="post">
-                            <h1 class="h3 mb-3 fw-normal fw-bold">{{ question.text }}</h1>
+                            <h1 class="h3 mb-3 fw-normal fw-bold">{{ question.id }}. {{ question.text }}</h1>
                             <div class="form-floating mb-1">
                                 {% for answer in question.answers %}
                                     <div class="form-check mb-4 mt-4">

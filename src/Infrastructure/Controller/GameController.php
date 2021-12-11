@@ -37,6 +37,7 @@ class GameController
 
     public function view(RequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+
         if (!$this->session->isCreated()) {
             throw new RuntimeException('This endpoint requires session');
         }
@@ -62,7 +63,6 @@ class GameController
             $this->session->destroy();
             return $this->redirectToJoinGame($response);
         }
-
         $view = Twig::fromRequest($request);
         return $view->render(
             $response,
@@ -168,12 +168,17 @@ class GameController
         } catch (NoGameExists $e) {
             return $view->render($response, 'watch.html.twig');
         }
-
+        try {
+            $question = $game->currentQuestion()->jsonSerialize();
+        } catch (GameIsFinished|GameNotStarted) {
+            $question = null;
+        }
         return $view->render(
             $response,
             'watch.html.twig',
             [
-                'game' => $game->jsonSerialize()
+                'game' => $game->jsonSerialize(),
+                'currentQuestion' => $question
             ]
         );
     }

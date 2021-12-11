@@ -35,7 +35,6 @@ class Game implements \JsonSerializable
         $this->state = $state;
         $this->players = new ArrayCollection($players);
         $this->questions = new ArrayCollection($questions);
-        $this->currentQuestion = -1;
         $this->scores = new ArrayCollection($score);
     }
 
@@ -81,7 +80,6 @@ class Game implements \JsonSerializable
         }
 
         $this->state = $this->state->nextStage();
-        $this->currentQuestion = 0;
     }
 
     public function state(): State
@@ -160,8 +158,6 @@ class Game implements \JsonSerializable
         if ($this->allPlayersAnswered()) {
             if ($this->isLastQuestion()) {
                 $this->state = $this->state->nextStage();
-            } else {
-                $this->currentQuestion++;
             }
         }
     }
@@ -204,17 +200,19 @@ class Game implements \JsonSerializable
         if (!$this->isStarted()) {
             throw GameNotStarted::create();
         }
-        return $this->questions->toArray()[$this->currentQuestion];
+
+        $id = (int) $this->scores->count() / $this->players()->count();
+        return $this->questions()->get($id);
     }
 
     private function isLastQuestion(): bool
     {
-        return $this->currentQuestion + 1 === $this->questions->count();
+        return (int) $this->scores->count() / $this->players()->count() === $this->questions->count();
     }
 
     private function allPlayersAnswered(): bool
     {
-        return $this->scores->count() === $this->players->count() * ($this->currentQuestion + 1);
+        return $this->scores->count() % $this->players()->count() === 0;
     }
 
     #[Pure] private function isFinished(): bool
@@ -263,11 +261,13 @@ class Game implements \JsonSerializable
     ])]
     public function jsonSerialize(): array
     {
+        $playersScores = $this->playersScores();
         return [
             'id' => (string) $this->id,
             'state' => $this->state->value,
             'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
             'players' => array_map(fn (Player $p) => $p->jsonSerialize(), $this->players->toArray()),
+            'scores' => array_map(fn ($s, $p)=>['score' => $s, 'player'=> $p], array_values($playersScores), array_keys($playersScores))
         ];
     }
 
@@ -281,19 +281,17 @@ class Game implements \JsonSerializable
     /** @ORM\Column(type= State::class) */
     private State $state;
     /**
-     * @ORM\OneToMany(targetEntity="Player", mappedBy="game", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="Player", mappedBy="game", cascade={"persist", "remove"}, fetch="EAGER")
      * @var Collection<Player>
      */
     private Collection $players;
     /**
-     * @ORM\OneToMany(targetEntity="Question", mappedBy="game", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="Question", mappedBy="game", cascade={"persist", "remove"}, fetch="EAGER")
      * @var Collection<Question>
      */
     private Collection $questions;
-    /** @ORM\Column(type="integer") */
-    private int $currentQuestion;
     /**
-     * @ORM\OneToMany(targetEntity="Score", mappedBy="game", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="Score", mappedBy="game", cascade={"persist", "remove"}, fetch="EAGER")
      * @var Collection<Score>
      */
     private Collection $scores;
