@@ -35,3 +35,11 @@ Although I have very little time, I decided to use DDD way of writing with separ
 Domain is mostly tested where the rest of code is not.
 
 One interesting part of the code is a little state machine I created with the new enums in PHP8, you can check it out at [Domain\Game\State](https://github.com/wnnawalaniec/quizz-game/blob/master/src/Domain/Game/State.php).
+
+----
+
+I used some graphic from the Internet to make this game a little more nice to eye.
+Here are links:
+ - [/static/logo.svg](https://www.svgrepo.com/svg/165164/pacifier)
+ - [/static/sad.svg](https://commons.wikimedia.org/wiki/File:Emojione_BW_2639.svg)
+ - [/static/cup.svg](https://www.onlinewebfonts.com/icon/530687)
