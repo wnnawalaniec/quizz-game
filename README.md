@@ -4,7 +4,7 @@ It's simple quizz game, where bunch of players answers set of question and one w
 
 ## About
 
-**Disclaimer** I created it for my girlfriend on her Baby showe party. Time was crucial, and expectations weren't that high. It's far from being ideal but it was a little after hours projcet.
+**Disclaimer** I created it for my girlfriend on her Baby shower party. Time was crucial, and expectations weren't that high. It's far from being ideal but it was a little after hours project. Also one important thing is, that it was designed to be run on local network only and as so it was never designed to be published on the Internet. It's very important from security point of view as this lacks many basic safety mechanism. Current authentication mechanism exist only for game-play reasons, so people can simply signup and stay in game. It's not production ready code!
 
 ### Game rules
 Game has 4 states:
