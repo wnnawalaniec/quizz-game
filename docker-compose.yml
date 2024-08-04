@@ -2,16 +2,20 @@ services:
   nginx:
     container_name: quiz-game_nginx
     image: quiz-game/web
-    build: docker/nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./:/var/www
     links:
       - php
     depends_on:
       - php
+    environment:
+      PORT: 80
+      HOST: localhost
+      FPM: php:9000
 
   php:
     container_name: quiz-game_fpm
