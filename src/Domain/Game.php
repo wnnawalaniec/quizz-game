@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Wojciech\QuizGame\Domain;
@@ -54,6 +55,23 @@ class Game implements \JsonSerializable
 
         $question->setGame($this);
         $this->questions->add($question);
+    }
+
+    /**
+     * @throws CannotAddQuestionGameIsNotNew
+     */
+    public function removeQuestion(int $questionIdx): void
+    {
+        if (!$this->isNewGame()) {
+            throw CannotAddQuestionGameIsNotNew::create();
+        }
+
+        foreach ($this->questions as $question) {
+            if ($question->id() === $questionIdx) {
+                $this->questions->removeElement($question);
+                return;
+            }
+        }
     }
 
     public function questions(): Collection
@@ -140,7 +158,7 @@ class Game implements \JsonSerializable
             throw PlayerIsNotSupposedThisGame::create();
         }
 
-        if (!$this->currentQuestion()->answers() ->contains($answer)) {
+        if (!$this->currentQuestion()->answers()->contains($answer)) {
             throw AnswerIsNotForCurrentQuestion::create();
         }
 
@@ -179,7 +197,7 @@ class Game implements \JsonSerializable
         $results = [];
         foreach ($this->scores as $score) {
             $correct = $results['scores'][$score->player()->id()] ?? 0;
-            $results['scores'][$score->player()->id()]['score'] = $correct + (int) $score->answer()->isCorrect();
+            $results['scores'][$score->player()->id()]['score'] = $correct + (int)$score->answer()->isCorrect();
             $results['scores'][$score->player()->id()]['name'] = $score->player()->name();
         }
 
@@ -201,13 +219,13 @@ class Game implements \JsonSerializable
             throw GameNotStarted::create();
         }
 
-        $id = (int) $this->scores->count() / $this->players()->count();
+        $id = (int)($this->scores->count() / $this->players()->count());
         return $this->questions()->get($id);
     }
 
     private function isLastQuestion(): bool
     {
-        return (int) $this->scores->count() / $this->players()->count() === $this->questions->count();
+        return (int)$this->scores->count() / $this->players()->count() === $this->questions->count();
     }
 
     private function allPlayersAnswered(): bool
@@ -225,7 +243,7 @@ class Game implements \JsonSerializable
         return !$this
             ->scores
             ->filter(
-                fn (Score $score) => $score->player()->equals($player)
+                fn(Score $score) => $score->player()->equals($player)
                     && $score->question()->equals($this->currentQuestion())
             )
             ->isEmpty();
@@ -263,11 +281,13 @@ class Game implements \JsonSerializable
     {
         $playersScores = $this->playersScores();
         return [
-            'id' => (string) $this->id,
+            'id' => (string)$this->id,
             'state' => $this->state->value,
-            'questions' => array_map(fn (Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
-            'players' => array_map(fn (Player $p) => $p->jsonSerialize(), $this->players->toArray()),
-            'scores' => array_map(fn ($s, $p)=>['score' => $s, 'player'=> $p], array_values($playersScores), array_keys($playersScores))
+            'questions' => array_map(fn(Question $q) => $q->jsonSerialize(), $this->questions->toArray()),
+            'players' => array_map(fn(Player $p) => $p->jsonSerialize(), $this->players->toArray()),
+            'scores' => array_map(fn($s, $p) => ['score' => $s, 'player' => $p],
+                array_values($playersScores),
+                array_keys($playersScores))
         ];
     }
 
@@ -286,7 +306,7 @@ class Game implements \JsonSerializable
      */
     private Collection $players;
     /**
-     * @ORM\OneToMany(targetEntity="Question", mappedBy="game", cascade={"persist", "remove"}, fetch="EAGER")
+     * @ORM\OneToMany(targetEntity="Question", mappedBy="game", cascade={"persist", "remove"}, fetch="EAGER", orphanRemoval=true)
      * @var Collection<Question>
      */
     private Collection $questions;

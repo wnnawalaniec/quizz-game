@@ -118,7 +118,7 @@ class Question implements \JsonSerializable
      * @ORM\Column(type="integer")
      * @ORM\GeneratedValue
      */
-    private int $id;
+    protected int $id;
     /** @ORM\Column(type="string") */
     private string $text;
     /**

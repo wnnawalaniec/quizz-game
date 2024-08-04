@@ -22,6 +22,8 @@ use Wojciech\QuizGame\Domain\Service\Exception\CannotStartNewGameWhenThereIsAlre
 use Wojciech\QuizGame\Domain\Service\Exception\NoGameExists;
 use Wojciech\QuizGame\Domain\Service\GameService;
 
+use function DI\value;
+
 class AdminController
 {
     public function __construct(
@@ -76,8 +78,7 @@ class AdminController
         }
         $this->persistence->flush();
 
-        $view = Twig::fromRequest($request);
-        return $view->render(
+        return Twig::fromRequest($request)->render(
             $response,
             'admin.html.twig',
             [
@@ -90,7 +91,8 @@ class AdminController
     public function addQuestion(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {
-            $this->gameService->addQuestion($this->questionFromJson($request));
+            $question = $this->questionFromJson($request);
+            $this->gameService->addQuestion($question);
         } catch (Question\Exception\EmptyTextGiven $e) {
             $response = $response->withStatus(400);
             $response->getBody()->write(json_encode(['error' => 'QUESTION_MUST_HAVE_TEXT']));
@@ -121,6 +123,24 @@ class AdminController
             return $response;
         }
         $this->persistence->flush();
+        $response->getBody()->write(json_encode(['id' => $question->id()]));
+        return $response->withStatus(201);
+    }
+
+    public function removeQuestion(RequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        try {
+            $this->gameService->removeQuestion((int)$args['id']);
+        } catch (NoGameExists) {
+            $response = $response->withStatus(409);
+            $response->getBody()->write(json_encode(['error' => 'NO_GAME_EXISTS']));
+            return $response;
+        } catch (CannotAddQuestionGameIsNotNew) {
+            $response = $response->withStatus(409);
+            $response->getBody()->write(json_encode(['error' => 'QUESTIONS_MAY_BE_ADDED_ONLY_TO_NEW_GAME']));
+            return $response;
+        }
+        $this->persistence->flush();
         return $response->withStatus(204);
     }
 
@@ -142,8 +162,7 @@ class AdminController
         } catch (NoGameExists $e) {
             $game = null;
         }
-        $view = Twig::fromRequest($request);
-        return $view->render($response, 'admin.html.twig', ['game' => $game]);
+        return Twig::fromRequest($request)->render($response, 'admin.html.twig', ['game' => $game]);
     }
 
     public function startGame(RequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -203,10 +222,10 @@ class AdminController
     {
         $data = json_decode($request->getBody()->getContents(), true);
         $possibleAnswers = [];
-        foreach ($data['answers'] as $answer) {
-            $possibleAnswers[] = new Answer($answer['text'], $answer['is_correct']);
+        foreach ($data['options'] as $answer) {
+            $possibleAnswers[] = new Answer($answer['text'], $answer['correct']);
         }
-        return new Question($data['text'], ...$possibleAnswers);
+        return new Question($data['question'], ...$possibleAnswers);
     }
 
     /**
@@ -220,8 +239,7 @@ class AdminController
         ?Game $game,
         ?string $error = null
     ): ResponseInterface {
-        $view = Twig::fromRequest($request);
-        return $view->render(
+        return Twig::fromRequest($request)->render(
             $response,
             'admin.html.twig',
             [

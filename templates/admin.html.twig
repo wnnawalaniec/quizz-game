@@ -14,8 +14,31 @@
             {% endfor %}
             <div>
                 {% if game.state == 'NEW_GAME' %}
-                    {{ error }}
+                    <div class="container mt-5">
+                        <h1 class="mb-4">Add Multiple Choice Question</h1>
+                        <form id="questionForm">
+                            <div class="mb-3">
+                                <label for="question" class="form-label">Question:</label>
+                                <input type="text" class="form-control" id="question" name="question" required>
+                            </div>
+
+                            <div id="options">
+                                <div class="option mb-3">
+                                    <input type="text" class="form-control" name="option" placeholder="Option 1" required>
+                                    <input type="checkbox" name="correctOption" class="form-check-input ms-2"> Correct
+                                </div>
+                            </div>
+
+                            <button type="button" id="addOption" class="btn btn-primary">Add Option</button>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </form>
+
+                        <h2 class="mt-5">Existing Questions</h2>
+                        <div id="questionsList"></div>
+                        <div id="message" class="mt-3"></div>
+                    </div>
                     <form method="post" action="/admin/game/start">
+                        Graczy oczekujących: {{ game.players|length }}. Gra czeka na rozpoczęcie.
                         <button class="w-100 btn btn-lg btn-success" type="submit">Rozpocznij</button>
                     </form>
                 {% endif %}
@@ -32,7 +55,9 @@
 
 
                 {% if game is null %}
-                    not implemented
+                    <form method="post" action="/admin/game/create">
+                        <button class="w-100 btn btn-lg btn-success" type="submit">Stwórz grę</button>
+                    </form>
                 {% endif %}
             </div>
         </main>

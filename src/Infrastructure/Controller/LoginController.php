@@ -42,6 +42,7 @@ class LoginController
             }
         }
 
+        $response = $response->withStatus(401);
         return $response->withHeader('WWW-Authenticate', 'Basic');
     }
 

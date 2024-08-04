@@ -66,4 +66,14 @@ return function (App $app) {
     $app->post('/admin/game/start', [AdminController::class, 'start'])
         ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class))
         ->addMiddleware($app->getContainer()->get(LoginRedirectMiddleware::class));
+
+    $app->post('/admin/game/create', [AdminController::class, 'createNewGame'])
+        ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class))
+        ->addMiddleware($app->getContainer()->get(LoginRedirectMiddleware::class));
+    $app->post('/admin/game/questions', [AdminController::class, 'addQuestion'])
+        ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class))
+        ->addMiddleware($app->getContainer()->get(LoginRedirectMiddleware::class));
+    $app->delete('/admin/game/questions/{id}', [AdminController::class, 'removeQuestion'])
+        ->addMiddleware($app->getContainer()->get(AuthenticationGuardMiddleware::class))
+        ->addMiddleware($app->getContainer()->get(LoginRedirectMiddleware::class));
 };

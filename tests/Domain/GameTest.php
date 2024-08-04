@@ -39,6 +39,27 @@ class GameTest extends BaseTest
         $this->assertException($expectedException, $act);
     }
 
+    public function testRemovingQuestion_GameIsNew_QuestionRemoved(): void
+    {
+        $expectedQuestion = $this->createQuestion();
+        $game = Game::createNewGame();
+        $game->addQuestion($expectedQuestion);
+
+        $game->removeQuestion($expectedQuestion->id());
+
+        $this->assertNotContains($expectedQuestion, $game->questions()->toArray());
+    }
+
+    public function testRemovingQuestion_GameIsNotNew_ThrowsException(): void
+    {
+        $game = $this->createStartedGame();
+
+        $act = fn () => $game->removeQuestion(1);
+
+        $expectedException = CannotAddQuestionGameIsNotNew::create();
+        $this->assertException($expectedException, $act);
+    }
+
     public function testStart_GameIsNew_GameStarted(): void
     {
         $game = $this->createNewGame();
@@ -269,7 +290,7 @@ class GameTest extends BaseTest
 
     protected function createQuestion(array $answers = null): Question
     {
-        return new Question('q', ...($answers ?? $this->createAnswers()));
+        return (new TestableQuestion('q', ...($answers ?? $this->createAnswers())))->setId(1);
     }
 
     protected function createPlayer(): Player

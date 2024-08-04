@@ -5,7 +5,7 @@ namespace Tests\Wojciech\QuizGame;
 
 use PHPUnit\Framework\TestCase;
 
-class BaseTest extends TestCase
+abstract class BaseTest extends TestCase
 {
     protected function assertException(\Exception $expectedException, callable $act): void
     {

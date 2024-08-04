@@ -5,6 +5,7 @@ namespace Wojciech\QuizGame\Domain\Service;
 
 use Doctrine\Common\Collections\Collection;
 use Wojciech\QuizGame\Domain\Game;
+use Wojciech\QuizGame\Domain\Game\Exception\CannotAddQuestionGameIsNotNew;
 use Wojciech\QuizGame\Domain\Game\Exception\CannotStartGame;
 use Wojciech\QuizGame\Domain\Game\Exception\GameIsFinished;
 use Wojciech\QuizGame\Domain\Game\Exception\GameNotStarted;
@@ -77,6 +78,19 @@ class GameService
             throw NoGameExists::create();
         }
         $game->addQuestion($question);
+    }
+
+    /**
+     * @throws CannotAddQuestionGameIsNotNew
+     * @throws NoGameExists
+     */
+    public function removeQuestion(int $questionId): void
+    {
+        $game = $this->repository->get();
+        if ($game === null) {
+            throw NoGameExists::create();
+        }
+        $game->removeQuestion($questionId);
     }
 
     /**

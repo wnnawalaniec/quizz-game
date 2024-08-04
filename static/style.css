@@ -116,3 +116,20 @@
         opacity: 0;
     }
 }
+
+.question-container {
+    margin-bottom: 15px;
+}
+
+.input-group-append {
+    display: flex;
+    align-items: center;
+}
+
+.input-group .form-control {
+    margin-right: 5px;
+}
+
+.input-group-append.ml-2 {
+    margin-left: 10px;
+}

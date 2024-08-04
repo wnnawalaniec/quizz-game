@@ -16,4 +16,4 @@ setup:
 
 schema-update:
 	docker compose up -d
-	docker exec quiz-game_fpm php vendor/bin/doctrine orm:schema-tool:update --force
+	docker exec quiz-game_fpm php vendor/bin/doctrine orm:schema-tool:update --force --complete
