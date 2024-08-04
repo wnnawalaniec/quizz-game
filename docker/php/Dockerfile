@@ -1,14 +1,11 @@
-FROM php:8.1-fpm
+FROM php:8.1.29-fpm-alpine3.20
 
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get install -y \
+RUN apk update
+RUN apk upgrade
+RUN apk add \
         libzip-dev \
         zip
 RUN docker-php-ext-install pdo pdo_mysql mysqli zip
-
-# RUN pecl install xdebug \
-#     && docker-php-ext-enable xdebug
 
 WORKDIR /var/www
 
@@ -17,7 +14,8 @@ RUN chmod +x /tmp/composer.sh
 RUN /tmp/composer.sh
 RUN chmod +x composer.phar
 
-COPY . /var/www
+COPY composer.json /var/www/
+COPY composer.lock /var/www/
 
 RUN php composer.phar install \
     --no-interaction \
@@ -25,5 +23,9 @@ RUN php composer.phar install \
     --no-scripts \
     --no-dev \
     --prefer-dist \
-    && rm -rf composer.json \
-    && rm -rf composer.lock
+    && rm -f composer.json \
+    && rm -f composer.lock \
+    && rm -f composer.phar \
+    && rm -f /tmp/composer.sh
+
+COPY . /var/www
