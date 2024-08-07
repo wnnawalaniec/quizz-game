@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
+    volumes:
+      - ./static:/var/www/static
     ports:
       - "80:80"
       - "443:443"

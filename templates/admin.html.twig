@@ -5,7 +5,17 @@
     {{ parent() }}
 {% endblock %}
 {% block content %}
-    <div class="col-lg-8 mx-auto p-3 py-md-5">
+    <div id="toast-container" class="position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Success message goes here.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8 mx-auto">
         <main>
             {% for error in errors %}
                 <div class="alert alert-danger" role="alert">
@@ -14,38 +24,54 @@
             {% endfor %}
             <div>
                 {% if game.state == 'NEW_GAME' %}
-                    <div class="container mt-5">
-                        <h1 class="mb-4">Add Multiple Choice Question</h1>
-                        <form id="questionForm">
-                            <div class="mb-3">
-                                <label for="question" class="form-label">Question:</label>
-                                <input type="text" class="form-control" id="question" name="question" required>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="container">
+                                <h1 class="mb-4">Nowe pytanie</h1>
+                                <form id="questionForm" class="border rounded p-3">
+                                    <div>
+                                        <div class="form-group mb-3">
+                                            <input type="text" class="form-control form-control-lg" id="question" name="question"
+                                                   placeholder="Pytanie?" required>
+                                        </div>
+                                        <div id="options"></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary form-control" aria-label="Dodaj">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                                             class="bi bi-plus" viewBox="0 0 16 16">
+                                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                        </svg>
+                                    </button>
+                                    <div class="alert alert-danger mt-3" role="alert" hidden="hidden">
+                                        <div id="message"></div>
+                                    </div>
+                                </form>
+                                <h2 class="mt-3">Pytania</h2>
+                                <div id="questionsList"></div>
                             </div>
-
-                            <div id="options">
-                                <div class="option mb-3">
-                                    <input type="text" class="form-control" name="option" placeholder="Option 1" required>
-                                    <input type="checkbox" name="correctOption" class="form-check-input ms-2"> Correct
-                                </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+                                <h1 class="mb-4">Gracze</h1>
+                                <ol class="list-group list-group-numbered p-0">
+                                    {% for player in game.players %}
+                                        <li class="list-group-item">{{ player.name }}</li>
+                                    {% endfor %}
+                                </ol>
                             </div>
-
-                            <button type="button" id="addOption" class="btn btn-primary">Add Option</button>
-                            <button type="submit" class="btn btn-success">Submit</button>
-                        </form>
-
-                        <h2 class="mt-5">Existing Questions</h2>
-                        <div id="questionsList"></div>
-                        <div id="message" class="mt-3"></div>
+                            <div class="row mt-3">
+                                <form method="post" class="p-0" action="/admin/game/start">
+                                    <button class="w-100 btn btn-lg btn-success" type="submit">Rozpocznij</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <form method="post" action="/admin/game/start">
-                        Graczy oczekujących: {{ game.players|length }}. Gra czeka na rozpoczęcie.
-                        <button class="w-100 btn btn-lg btn-success" type="submit">Rozpocznij</button>
-                    </form>
                 {% endif %}
 
 
                 {% if game.state == 'STARTED' %}
                     game started
+                    {{ game.scores }}
                 {% endif %}
 
 

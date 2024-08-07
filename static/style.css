@@ -133,3 +133,43 @@
 .input-group-append.ml-2 {
     margin-left: 10px;
 }
+.d-flex {
+    display: flex;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.me-2 {
+    margin-right: 0.5rem; /* Adjust as needed for spacing */
+}
+
+.checkbox {
+    width: 2rem !important; /* Adjust as needed */
+    height: 2rem !important; /* Adjust as needed */
+    margin-top: 0!important;
+}
+
+.option.placeholder {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    opacity: 0.6;
+}
+.option.placeholder input {
+    color: #6c757d;
+    font-style: italic;
+}
+.option.placeholder input:focus {
+    color: #495057;
+    font-style: normal;
+}
+
+#toast-container{
+    z-index: 9999!important;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
